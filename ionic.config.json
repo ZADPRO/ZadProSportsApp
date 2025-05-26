@@ -1,0 +1,7 @@
+{
+  "name": "SportsApp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
