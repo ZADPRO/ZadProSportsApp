@@ -10,19 +10,26 @@ import SettingsScreen from "../../components/07-SettingsScreen/SettingsScreen"
 import { useEffect } from "react"
 import { StatusBar, Style } from "@capacitor/status-bar"
 import ProfileScreen from "../../components/08-ProfileScreen/ProfileScreen"
+import { Capacitor } from "@capacitor/core"
+import AboutScreen from "../../components/09-AboutScreen/AboutScreen"
+import PrivacyScreen from "../../components/10-PrivacyScreen/PrivacyScreen"
+import TermsScreen from "../../components/11-TermsScreen/TermsScreen"
+import BookedScreen from "../../components/12-BookedScreen/BookedScreen"
 
 const MainRoutes = () => {
 
     useEffect(() => {
-        const configureStatusBar = async () => {
-            await StatusBar.setOverlaysWebView({ overlay: false }); // <-- This prevents overlay
-            await StatusBar.setStyle({ style: Style.Dark });
-            await StatusBar.setBackgroundColor({ color: '#0377de' });
-            await StatusBar.show();
-        };
+        if (Capacitor.isNativePlatform()) {
+            StatusBar.setOverlaysWebView({ overlay: false });
+            StatusBar.setStyle({ style: Style.Dark });
+            StatusBar.setBackgroundColor({ color: "#0377de" });
 
-        configureStatusBar();
+            return () => {
+                StatusBar.setOverlaysWebView({ overlay: true });
+            };
+        }
     }, []);
+
 
     return (
         <IonTabs>
@@ -50,6 +57,18 @@ const MainRoutes = () => {
                 </Route>
                 <Route exact path="/profile">
                     <ProfileScreen />
+                </Route>
+                <Route exact path="/about">
+                    <AboutScreen />
+                </Route>
+                <Route exact path="/privacy">
+                    <PrivacyScreen />
+                </Route>
+                <Route exact path="/terms">
+                    <TermsScreen />
+                </Route>
+                <Route exact path="/bookinghistory">
+                    <BookedScreen />
                 </Route>
             </IonRouterOutlet>
         </IonTabs>

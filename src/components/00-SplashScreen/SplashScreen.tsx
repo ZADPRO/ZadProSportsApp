@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import { IonContent, IonPage } from "@ionic/react";
-import logo from "../../assets/images/Logo.jpg"
+import logo from "../../assets/images/Logo.png"
 import "./SplashScreen.css"
 
 const Splashscreen: React.FC = () => {
@@ -10,7 +10,12 @@ const Splashscreen: React.FC = () => {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            history.replace("/login")
+
+            if (localStorage.getItem("token")) {
+                history.replace("/home")
+            } else {
+                history.replace("/login")
+            }
         }, 3000);
 
         return () => clearTimeout(timer); // Clean up the timeout
@@ -20,8 +25,8 @@ const Splashscreen: React.FC = () => {
         <IonPage>
             <IonContent>
                 <div className="bg-container">
-                    <div className="logoImage ">
-                        <img src={logo} alt="Medpredit Logo" className="logo" />
+                    <div className="logoImage flex justify-center items-center">
+                        <img style={{ width: "70%" }} src={logo} alt="Sports Logo" className="logo" />
                     </div>
                 </div>
             </IonContent>

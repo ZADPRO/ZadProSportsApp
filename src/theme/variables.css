@@ -2,6 +2,7 @@
 http://ionicframework.com/docs/theming/ */
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -34,4 +35,158 @@ http://ionicframework.com/docs/theming/ */
   align-items: center;
   justify-content: center;
   font-weight: bold;
+}
+
+.p-highlight {
+  background: #4caf50 !important; /* Green background */
+  color: white !important; /* White text */
+  border-radius: 50%; /* Circle highlight */
+}
+
+.strike-date {
+  text-decoration: line-through;
+  color: #b71c1c !important;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.p-button {
+  background: #0377de !important;
+}
+
+:root {
+  --ion-toolbar-background: #0377de;
+  --ion-toolbar-color: white;
+}
+
+.ios.in-toolbar {
+  --border-width: 0px !important;
+  font-family: "Poppins";
+}
+
+ion-content {
+  --background: #fff;
+}
+
+.alert-wrapper {
+  background: #fff !important;
+  border-radius: 20px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+  padding: 1rem;
+  color: #000 !important;
+  max-width: 80% !important;
+}
+
+/* Customize header */
+.alert-header {
+  font-size: 1.5rem !important;
+  font-weight: bold !important;
+  color: #ff4757 !important;
+}
+
+.alert-title {
+  color: #000 !important;
+  font-family: "Poppins";
+  font-size: 1rem !important;
+}
+
+/* Customize message */
+.alert-message {
+  font-size: 1rem !important;
+  color: #444 !important;
+  padding: 1rem !important;
+}
+
+.alert-button-group {
+  justify-content: space-between;
+  gap: 0.4rem;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+  align-items: center;
+}
+
+/* Customize buttons */
+.alert-button {
+  border-radius: 10px !important;
+  padding: 8px 16px !important;
+  font-weight: bold !important;
+  border: none;
+  max-width: 40% !important;
+  min-width: 10% !important;
+  border: none !important;
+}
+
+.alert-button-role-confirm {
+  background: #0377de !important;
+  color: #fff !important;
+  font-size: 0.9rem !important;
+  font-family: "Poppins";
+}
+
+.alert-button-role-cancel {
+  background: #dedede !important;
+  color: #444 !important;
+  font-size: 0.9rem !important;
+  font-family: "Poppins";
+}
+
+.ion-color-success {
+  --ion-color-base: rgb(84, 175, 84) !important;
+  --ion-color-base-rgb: var(--ion-color-success-rgb, 45, 213, 91) !important;
+  --ion-color-contrast: #fff !important;
+  --ion-color-contrast-rgb: var(
+    --ion-color-success-contrast-rgb,
+    0,
+    0,
+    0
+  ) !important;
+  --ion-color-shade: var(--ion-color-success-shade, #28bb50) !important;
+  --ion-color-tint: var(--ion-color-success-tint, #42d96b) !important;
+  font-family: "Poppins";
+}
+
+ion-accordion-group {
+  --background: #ff1717; /* Light background */
+  /* border: 1px solid var(--border-color); */
+  border-radius: 8px;
+  display: flex;
+  row-gap: 20px;
+  flex-direction: column;
+  font-family: "Poppins" !important;
+}
+
+ion-accordion {
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: none !important;
+  font-family: "Poppins" !important;
+}
+
+ion-accordion ion-item[slot="header"] {
+  --background: #f2f2f2;
+  color: #333;
+  border: none !important;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  /* margin-top: 20px; */
+}
+
+ion-accordion .ion-padding[slot="content"] {
+  background-color: #e7e7e7;
+  font-family: "Poppins" !important;
+  padding: 15px;
+  font-size: 14px;
+  color: #333;
+}
+
+ion-accordion ion-item[slot="header"]:hover {
+  --background: #f2f2f2;
+  color: #333;
+}
+
+input[type="radio"] {
+  accent-color: #0377de; /* Custom color */
+  width: 16px;
+  height: 16px;
 }

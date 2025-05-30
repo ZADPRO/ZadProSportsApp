@@ -1,9 +1,9 @@
-import { IonButton, IonContent, IonFooter, IonHeader, IonModal, IonPage, IonText, IonTitle, IonToolbar } from "@ionic/react";
+import { IonAlert, IonBackButton, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonModal, IonPage, IonText, IonTitle, IonToolbar } from "@ionic/react";
 import logo from "../../assets/images/Logo.jpg";
 import { InputText } from 'primereact/inputtext';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Password } from 'primereact/password';
-import { useHistory } from "react-router";
+import { useHistory, useLocation } from "react-router";
 import { TbUserCog } from "react-icons/tb";
 import { FaArrowLeftLong, FaArrowRightLong } from "react-icons/fa6";
 
@@ -16,32 +16,34 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { Calendar } from 'primereact/calendar';
 import { IoIosArrowBack, IoMdClose } from "react-icons/io";
+import { StatusBar, Style } from "@capacitor/status-bar";
+import axios from "axios";
+import { decrypt } from "../../Helper";
 
 type StreakDate = { date: string };
 
 
 const GroundDescription = () => {
-    const usernameRef = useRef<HTMLInputElement>(null); // ✅ CORRECT TYPING
-
-    const handleLogin = () => {
-        const username = usernameRef.current?.value;
-        console.log("Username:", username);
-    }
-
-
-    const history = useHistory();
 
     const [showModal, setShowModal] = useState(false);
     const [showDatePickerModal, setShowDatePickerModal] = useState(false);
     const [dates, setDates] = useState<[Date | null, Date | null] | null>(null);
     const [isDateRangeSelected, setIsDateRangeSelected] = useState(false);
 
+
+    const history = useHistory();
+
+
+
     // Your streak dates array (string format "dd-MM-yyyy")
-    const streakDates: StreakDate[] = [
-        { date: "24-05-2025" },
-        { date: "28-05-2025" },
-        // add more dates here
-    ];
+    // const [streakDates setStreakDates]: StreakDate[] = [
+    //     { date: "24-05-2025" },
+    //     { date: "28-05-2025" },
+    //     // add more dates here
+    // ];
+
+    const [streakDates, setStreakDates] = useState<StreakDate[]>([]);
+
 
     // Helper: parse "dd-MM-yyyy" string to Date object (midnight)
     const parseDateString = (dateStr: string): Date => {
@@ -183,93 +185,238 @@ const GroundDescription = () => {
         setIsDateRangeSelected(false);
     };
 
+    const formatDate = (date: Date): string => {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+    };
+
+    const getAllDatesInRange = (start: Date, end: Date): string[] => {
+        const dates: string[] = [];
+        let current = new Date(start.getTime());
+        current.setHours(0, 0, 0, 0);
+        end = new Date(end.getTime());
+        end.setHours(0, 0, 0, 0);
+
+        while (current <= end) {
+            dates.push(formatDate(current));
+            current.setDate(current.getDate() + 1);
+        }
+        return dates;
+    };
+
+    // useEffect(() => {
+    //     StatusBar.setOverlaysWebView({ overlay: false });
+    //     StatusBar.setStyle({ style: Style.Dark });
+    //     StatusBar.setBackgroundColor({ color: "#0377de" });
+
+    //     return () => {
+    //         StatusBar.setOverlaysWebView({ overlay: true });
+    //     };
+    // }, []);
+
+
+    const [loading, setLoading] = useState(false);
+
+    const [description, setDescription]: any = useState([])
+
+    const fetchData = async () => {
+
+
+        setLoading(true)
+        const urlParams = new URLSearchParams(window.location.search);
+        const groundId = urlParams.get('groundId');
+
+        try {
+
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/v1/userRoutes/getGrounds`,
+                {
+                    refGroundId: groundId
+                },
+                {
+                    headers: {
+                        Authorization: localStorage.getItem("token"),
+                        "Content-Type": "application/json",
+                    },
+
+                })
+
+            const data = decrypt(
+                response.data[1],
+                response.data[0],
+                import.meta.env.VITE_ENCRYPTION_KEY
+            );
+
+            console.log(data)
+
+            localStorage.setItem("token", "Bearer " + data.token)
+
+            if (data.success) {
+
+                const updatedDates = data.groundUnavailableDate.map((element: any) => ({
+                    date: element.unAvailabilityDate,
+                }));
+
+                setStreakDates(updatedDates);
+
+                setDescription(data.groundResult[0])
+
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const booknowStatus = urlParams.get('booknowStatus');
+
+
+            console.log(booknowStatus)
+            if (booknowStatus === "false") {
+                setShowDatePickerModal(false)
+            } else if (booknowStatus === "true") {
+                setShowDatePickerModal(true)
+            }
+
+            setLoading(false)
+
+        } catch (e: any) {
+            console.log(e)
+            setLoading(false)
+        }
+    }
+
+
+    useEffect(() => {
+
+
+
+
+        fetchData();
+
+    }, [])
+
+
+
     return (
         <IonPage>
-
-            <IonModal
-                isOpen={showModal}
-                onDidDismiss={() => setShowModal(false)}
-                initialBreakpoint={0.6}
-                breakpoints={[0.6]}
-                handleBehavior="none">
-                <IonContent>
-                    <div className="w-[100%] h-[60%] bg-[#f9fff7]">
-                        <div className="h-[85%]">
-                            <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3907.684892936324!2d78.14989567370742!3d11.64578838856081!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3babef6bdbbc3f7d%3A0x404c804a4826efdf!2sZAdroit%20IT%20Solutions%20Private%20Limited!5e0!3m2!1sen!2sin!4v1748085938680!5m2!1sen!2sin"
-                                width="100%"
-                                height="100%"
-                                style={{ border: 0 }}
-                                loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
-                                title="ZAdroit Location"
-                            ></iframe>
-                        </div>
-                        <div className="w-[100%] flex justify-center items-center">
-                            <IonButton
-                                style={{ position: "fixed", bottom: "40%", zIndex: 9999 }}
-                                onClick={() => setShowModal(false)} className="custom-ion-button w-[90%] h-[5vh] text-[#fff] text-[1rem]">Close</IonButton>
-                        </div>
-                    </div>
-                </IonContent>
-            </IonModal>
-
-            <IonModal
-                isOpen={showDatePickerModal}
-                onDidDismiss={() => { setShowDatePickerModal(false); handleClear() }}
-                initialBreakpoint={0.6}
-                breakpoints={[0.6]}
-                handleBehavior="none"
-            >
-                <IonContent>
-                    <div className="w-[100%] h-[60%] bg-[#f9fff7]">
-                        <div className="h-[10%] px-[0.5rem] w-[100%] flex justify-end items-center text-[#282828] text-[1.4rem]" onClick={() => { setShowDatePickerModal(false); handleClear() }}
-                        ><IoMdClose /></div>
-                        <div className="h-[70%] w-[100%] flex justify-center items-center">
-                            <Calendar
-                                value={dates}
-                                onChange={handleDateChange}
-                                selectionMode="range"
-                                inline
-                                disabled={isDateRangeSelected}
-                                minDate={tomorrow}
-                                dateTemplate={dateTemplate}
-                                disabledDates={streakDateObjects} // <-- disables streak dates!
-                            />
-                        </div>
-
-                        <div
-                            className="flex justify-between px-[1%]"
-                            style={{ position: "fixed", bottom: "40%", zIndex: 9999, width: "100%" }}
-                        >
-                            <IonButton
-                                onClick={handleClear}
-                                className="custom-ion-button w-[38%] h-[5vh] text-[#fff] text-[1rem]"
-                            >
-                                Clear
-                            </IonButton>
-                            <IonButton
-                                onClick={() => { setShowDatePickerModal(false); history.push("/booking") }}
-                                disabled={!dates || !dates[0]}
-                                className="custom-ion-button w-[58%] h-[5vh] text-[#fff] text-[1rem]"
-                            >
-                                Continue Booking
-                            </IonButton>
-                        </div>
-                    </div>
-                </IonContent>
-            </IonModal>
-
             <IonHeader>
-                <div className="text-[#fff] bg-[#0377de] flex justify-between items-center px-[1.5rem] h-[8vh] text-[1.3rem]">
+                {/* <div className="text-[#fff] bg-[#0377de] flex justify-between items-center px-[1.5rem] h-[8vh] text-[1.3rem]">
                     <div><IoIosArrowBack className="text-[1.5rem]" onClick={() => { history.goBack() }} /></div>
-                    <div className="text-[1.2rem] font-[poppins] font-[500] text-[#fff] ml-[-1.2rem]">Description</div>
+                    <div className="text-[1rem] font-[poppins] font-[600] text-[#fff] ml-[-1.2rem]">Description</div>
                     <div></div>
-                </div>
+                </div> */}
+                <IonToolbar>
+                    <IonButtons slot="start">
+                        <IonBackButton defaultHref="/home" mode="md"></IonBackButton>
+                    </IonButtons>
+                    <IonTitle>Description</IonTitle>
+                </IonToolbar>
             </IonHeader>
             <IonContent>
-                <div className="bg-[#fff] w-[100%] h-[92vh] pb-[4rem] overflow-auto px-[1rem] py-[1rem]">
-                    <Carousel
+                {
+                    loading && !description.IframeLink ? (
+                        <>
+
+                            <div className="w-[100%] py-[2rem] flex justify-center items-center">
+                                <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem', color: "#0377de" }}></i>
+                            </div>
+
+                        </>
+                    ) : (
+                        <div className="bg-[#fff] w-[100%] overflow-auto  pb-[4rem]">
+
+                            <IonModal
+                                isOpen={showModal}
+                                onDidDismiss={() => setShowModal(false)}
+                                initialBreakpoint={0.6}
+                                breakpoints={[0.6]}
+                                handleBehavior="none">
+                                <IonContent>
+                                    <div className="w-[100%] h-[60%] bg-[#f9fff7]">
+                                        <div className="h-[85%]">
+                                            <iframe
+                                                src={description.IframeLink}
+                                                width="100%"
+                                                height="100%"
+                                                style={{ border: 0 }}
+                                                // loading="lazy"
+                                                referrerPolicy="no-referrer-when-downgrade"
+                                            ></iframe>
+                                        </div>
+                                        <div className="w-[100%] flex justify-center items-center">
+                                            <IonButton
+                                                style={{ position: "fixed", bottom: "40%", zIndex: 9999 }}
+                                                onClick={() => setShowModal(false)} className="custom-ion-button w-[90%] h-[5vh] text-[#fff] text-[1rem]">Close</IonButton>
+                                        </div>
+                                    </div>
+                                </IonContent>
+                            </IonModal>
+
+                            <IonModal
+                                isOpen={showDatePickerModal}
+                                onDidDismiss={() => { setShowDatePickerModal(false); handleClear() }}
+                                initialBreakpoint={0.6}
+                                breakpoints={[0.6]}
+                                handleBehavior="none"
+                            >
+                                <IonContent>
+                                    <div className="w-[100%] h-[60%] bg-[#f6f6f6]">
+                                        <div className="h-[15%] px-[0.5rem] w-[100%] flex justify-end items-center text-[#282828] text-[1.4rem]" onClick={() => { setShowDatePickerModal(false); handleClear() }}
+                                        ><IoMdClose /></div>
+                                        <div className="h-[70%] w-[100%] p-[2rem] flex justify-center items-center">
+                                            <Calendar
+                                                className="w-[100%] text-[poppins]"
+                                                value={dates}
+                                                onChange={handleDateChange}
+                                                selectionMode="range"
+                                                inline
+                                                disabled={isDateRangeSelected}
+                                                minDate={tomorrow}
+                                                dateTemplate={dateTemplate}
+                                                disabledDates={streakDateObjects} // <-- disables streak dates!
+                                            />
+                                        </div>
+                                        <div
+                                            className="flex justify-between px-[1%]"
+                                            style={{ position: "fixed", bottom: "40%", zIndex: 9999, width: "100%" }}
+                                        >
+                                            <IonButton
+                                                onClick={handleClear}
+                                                className="custom-ion-button text-[0.8rem] font-[poppins] w-[38%] h-[5vh] text-[#fff]"
+                                            >
+                                                Clear
+                                            </IonButton>
+                                            <IonButton
+                                                onClick={() => {
+                                                    if (dates && dates[0]) {
+                                                        let selectedDateStrings: string[] = [];
+                                                        if (dates[1]) {
+                                                            // Range selected: get all dates in between
+                                                            selectedDateStrings = getAllDatesInRange(dates[0], dates[1]);
+                                                        } else {
+                                                            // Only one date selected
+                                                            selectedDateStrings = [formatDate(dates[0])];
+                                                        }
+                                                        localStorage.setItem("selectedDate", JSON.stringify(selectedDateStrings));
+                                                        localStorage.setItem("price", description.refGroundPrice);
+                                                    }
+                                                    setShowDatePickerModal(false);
+                                                    history.push("/booking?groundId=" + description.refGroundId)
+                                                }}
+                                                disabled={!dates || !dates[0]}
+                                                className="custom-ion-button font-[poppins] w-[58%] h-[5vh] text-[#fff] text-[0.8rem]"
+                                            >
+                                                Continue Booking
+                                            </IonButton>
+                                        </div>
+                                    </div>
+                                </IonContent>
+                            </IonModal>
+                            {
+                                description.refGroundImage && (
+                                    <img src={`data:${description.refGroundImage.contentType};base64,${description.refGroundImage.content}`} alt={description.refGroundName} />
+                                )
+                            }
+
+                            {/* <Carousel
                         autoPlay
                         infiniteLoop
                         showThumbs={false}
@@ -280,48 +427,66 @@ const GroundDescription = () => {
                         preventMovementUntilSwipeScrollTolerance
                         swipeScrollTolerance={50}
                     >
-                        <div>
-                            <img src={Ground1} className="rounded-[10px]" alt="Ground1" />
-                        </div>
-                        <div>
-                            <img src={Ground11} className="rounded-[10px]" alt="Ground11" />
-                        </div>
-                        <div>
-                            <img src={Ground12} className="rounded-[10px]" alt="Ground12" />
-                        </div>
-                        <div>
-                            <img src={Ground13} className="rounded-[10px]" alt="Ground13" />
-                        </div>
-                    </Carousel>
-                    <div className='text-[#3c3c3c] text-[1rem] font-[600] pt-[10px] pb-[4px] font-[poppins]'>Ground 1</div>
-                    <div className='text-[#3c3c3c] text-[0.8rem] font-[500] pb-[15px] font-[poppins]'>38/37B, Logi Chetty Street Number 1, Logi Street, Gugai, Salem, Tamil Nadu 636006 <span className="text-[#0377de] underline" onClick={() => setShowModal(true)}>View in Map</span></div>
-                    <div className="text-[#242424] font-[poppins] text-[0.9rem] font-[600] bg-[#a9d6ff] rounded-[10px] p-[6px]" style={{ border: "1.5px solid #0377de" }}>Facilities Available</div>
-                    <div className='text-[#3c3c3c] mt-[0.6rem] text-[0.8rem] font-[500] pb-[15px] font-[poppins]'>
-                        <div className="px-[1.5rem]">
-                            <li>Parking</li>
-                            <li>Washrooms</li>
-                            <li>Changing rooms</li>
-                            <li>Drinking water</li>
-                        </div>
-                    </div>
-                    <div className="text-[#242424] font-[poppins] text-[0.9rem] font-[600] bg-[#a9d6ff] rounded-[10px] p-[6px]" style={{ border: "1.5px solid #0377de" }}>Ground Rules / Policies</div>
-                    <div className='text-[#3c3c3c] mt-[0.6rem] text-[0.8rem] font-[500] pb-[15px] font-[poppins]'>
-                        <div className="px-[1.5rem]">
-                            <li>Cancellation policy</li>
-                            <li>Entry rules (e.g., sports shoes only)</li>
-                            <li>Max players per slot</li>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex justify-center">
-                    <IonButton
-                        style={{ position: "fixed", bottom: "0px", }}
-                        onClick={() => {
-                            setShowDatePickerModal(true)
-                        }} className="custom-ion-button w-[90%] h-[5vh] text-[#fff] text-[1rem]">Book Now</IonButton>
-                </div>
 
-
+                        <div>
+                            <img src={`data:${description};base64,${description.refGroundImage.content}`} alt="Ground11" />
+                        </div>
+                    </Carousel> */}
+                            <div className="px-[1rem]">
+                                <div className='text-[#3c3c3c] text-[1rem] font-[600] pt-[10px] pb-[4px] font-[poppins]'>{description.refGroundName} (Rs. {description.refGroundPrice}/Per Day)</div>
+                                <div className='text-[#3c3c3c] text-[0.8rem] font-[500] pb-[0px] font-[poppins]'>{description.refDescription}</div>
+                                <div className='text-[#3c3c3c] text-[0.8rem] font-[500] pb-[15px] font-[poppins]'>{description.refGroundLocation}, {description.refGroundState}, {description.refGroundPincode} <span className="text-[#0377de] underline" onClick={() => setShowModal(true)}>View in Map</span></div>
+                                <div className="text-[#242424] font-[poppins] text-[0.9rem] font-[600] rounded-[10px] p-[px]">Features</div>
+                                <div className='text-[#3c3c3c] mt-[0.6rem] text-[0.8rem] font-[500] pb-[15px] font-[poppins]'>
+                                    <div className="px-[1.5rem]">
+                                        {
+                                            description.refFeaturesName && description.refFeaturesName.map((element: any) => (
+                                                <li>{element}</li>
+                                            ))
+                                        }
+                                    </div>
+                                </div>
+                                <div className="text-[#242424] font-[poppins] text-[0.9rem] font-[600] rounded-[10px] p-[3px]">Facility Available</div>
+                                <div className='text-[#3c3c3c] mt-[0.6rem] text-[0.8rem] font-[500] pb-[15px] font-[poppins]'>
+                                    <div className="px-[1.5rem]">
+                                        {
+                                            description.refFacilitiesName && description.refFacilitiesName.map((element: any) => (
+                                                <li>{element}</li>
+                                            ))
+                                        }
+                                    </div>
+                                </div>
+                                <div className="text-[#242424] font-[poppins] text-[0.9rem] font-[600] rounded-[10px] p-[px]">User Guidelines</div>
+                                <div className='text-[#3c3c3c] mt-[0.6rem] text-[0.8rem] font-[500] pb-[15px] font-[poppins]'>
+                                    <div className="px-[1.5rem]">
+                                        {
+                                            description.refUserGuidelinesName && description.refUserGuidelinesName.map((element: any) => (
+                                                <li>{element}</li>
+                                            ))
+                                        }
+                                    </div>
+                                </div>
+                                <div className="text-[#242424] font-[poppins] text-[0.9rem] font-[600] rounded-[10px] p-[px]">Additional Tips</div>
+                                <div className='text-[#3c3c3c] mt-[0.6rem] text-[0.8rem] font-[500] pb-[15px] font-[poppins]'>
+                                    <div className="px-[1.5rem]">
+                                        {
+                                            description.refAdditionalTipsName && description.refAdditionalTipsName.map((element: any) => (
+                                                <li>{element}</li>
+                                            ))
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex justify-center">
+                                <IonButton
+                                    style={{ position: "fixed", bottom: "0px", }}
+                                    onClick={() => {
+                                        setShowDatePickerModal(true)
+                                    }} className="custom-ion-button w-[90%] h-[5vh] text-[#fff] text-[0.8rem] font-[poppins]">Book Now</IonButton>
+                            </div>
+                        </div>
+                    )
+                }
             </IonContent>
         </IonPage>
     );
