@@ -48,9 +48,9 @@ const LoginScreen = () => {
                 import.meta.env.VITE_ENCRYPTION_KEY
             );
 
-            console.log(data)
-
+            
             if (data.success) {
+                console.log(data)
 
                 setSuccess({
                     status: true,
@@ -69,6 +69,7 @@ const LoginScreen = () => {
 
             } else {
                 setLoading(false)
+                console.log("Error__________________")
                 setError({
                     status: true,
                     message: data.message
@@ -169,7 +170,7 @@ const LoginScreen = () => {
                                     required
                                 />
                             </div>
-                            <div className={`text-[${error.status ? "red" : "green"}] h-[2rem] mt-[1rem] px-[3rem] w-[100%] font-[poppins]`}>{error.status ? error.message : ""}{success.status ? success.message : ""}</div>
+                            <div className={`${error.status ? "text-[red]" : "text-[green]"} h-[2rem] mt-[1rem] px-[3rem] w-[100%] font-[poppins]`}>{error.status ? error.message : ""}{success.status ? success.message : ""}</div>
                             <div className="mt-[0.3rem] px-[3rem]">
                                 <IonButton type="submit" className="custom-ion-button font-[poppins] w-[100%] h-[2.5rem] text-[#fff] text-[1rem]">{loading ? (<i className="pi pi-spin pi-spinner" style={{ fontSize: '1rem' }}></i>) : "Login"}</IonButton>
                             </div>

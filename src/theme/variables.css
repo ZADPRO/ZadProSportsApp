@@ -7,10 +7,6 @@ http://ionicframework.com/docs/theming/ */
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary-color: red;
-}
-
 .hide-scrollbar {
   scrollbar-width: none; /* Firefox */
 }
@@ -190,3 +186,25 @@ input[type="radio"] {
   width: 16px;
   height: 16px;
 }
+
+ion-picker {
+  --highlight-background: #0377de;
+  --highlight-border-radius: 50px;
+  --fade-background-rgb: #fff;
+  color: #bbbbbb !important;
+  font-family: "Poppins";
+}
+
+ion-spinner {
+  color: #505050 !important;
+  z-index: 99999;
+}
+
+ion-app {
+  background-color: #fff;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+

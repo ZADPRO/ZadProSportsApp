@@ -1,24 +1,13 @@
-import { IonAlert, IonBackButton, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonModal, IonPage, IonText, IonTitle, IonToolbar } from "@ionic/react";
-import logo from "../../assets/images/Logo.jpg";
-import { InputText } from 'primereact/inputtext';
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Password } from 'primereact/password';
-import { useHistory, useLocation } from "react-router";
-import { TbUserCog } from "react-icons/tb";
-import { FaArrowLeftLong, FaArrowRightLong } from "react-icons/fa6";
+import { IonAlert, IonBackButton, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonModal, IonPage, IonRefresher, IonRefresherContent, IonText, IonTitle, IonToolbar } from "@ionic/react";
+import { useEffect, useMemo, useState } from "react";
+import { useHistory } from "react-router";
 
-import Ground1 from "../../assets/images/Ground1.png"
-import Ground11 from "../../assets/images/Ground11.png"
-import Ground12 from "../../assets/images/Ground12.png"
-import Ground13 from "../../assets/images/Ground13.png"
-import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-import { HiOutlineUserCircle } from "react-icons/hi2";
 import { Calendar } from 'primereact/calendar';
-import { IoIosArrowBack, IoMdClose } from "react-icons/io";
-import { StatusBar, Style } from "@capacitor/status-bar";
+import { IoMdClose } from "react-icons/io";
 import axios from "axios";
 import { decrypt } from "../../Helper";
+import Logo from "../../assets/images/unavailable.png"
 
 type StreakDate = { date: string };
 
@@ -286,12 +275,14 @@ const GroundDescription = () => {
 
     useEffect(() => {
 
-
-
-
         fetchData();
 
     }, [])
+
+    const handleRefresh = (event: any) => {
+        fetchData()
+        event.detail.complete();
+    }
 
 
 
@@ -311,6 +302,9 @@ const GroundDescription = () => {
                 </IonToolbar>
             </IonHeader>
             <IonContent>
+                <IonRefresher style={{ background: "#fff" }} slot="fixed" onIonRefresh={handleRefresh}>
+                    <IonRefresherContent ></IonRefresherContent>
+                </IonRefresher>
                 {
                     loading && !description.IframeLink ? (
                         <>
@@ -411,8 +405,18 @@ const GroundDescription = () => {
                                 </IonContent>
                             </IonModal>
                             {
-                                description.refGroundImage && (
-                                    <img src={`data:${description.refGroundImage.contentType};base64,${description.refGroundImage.content}`} alt={description.refGroundName} />
+                                description.refGroundImage ? (
+                                    <img style={{ width: "100%", height: "180px" }}
+                                        className="object-cover" src={`data:${description.refGroundImage.contentType};base64,${description.refGroundImage.content}`} alt={description.refGroundName} />
+                                ) : (
+                                    (
+                                        <img
+                                            src={Logo}
+                                            style={{ width: "100%", height: "180px" }}
+                                            className="object-cover"
+                                            alt="Logo"
+                                        />
+                                    )
                                 )
                             }
 
@@ -433,8 +437,11 @@ const GroundDescription = () => {
                         </div>
                     </Carousel> */}
                             <div className="px-[1rem]">
-                                <div className='text-[#3c3c3c] text-[1rem] font-[600] pt-[10px] pb-[4px] font-[poppins]'>{description.refGroundName} (Rs. {description.refGroundPrice}/Per Day)</div>
-                                <div className='text-[#3c3c3c] text-[0.8rem] font-[500] pb-[0px] font-[poppins]'>{description.refDescription}</div>
+                                <div className='text-[#3c3c3c] text-[1.3rem] font-[600] pt-[10px] pb-[4px] font-[poppins]'>{description.refGroundName}</div>
+                                <div className='text-[#3c3c3c] text-[0.9rem] font-[600] pt-[1px] pb-[4px] font-[poppins]'>Single Day - Rs. {description.refGroundPrice}</div>
+                                <div className='text-[#3c3c3c] text-[0.9rem] font-[600] pt-[1px] pb-[4px] font-[poppins]'>Multiple Days - Rs. {description.refTournamentPrice}</div>
+                                <div className='text-[#3c3c3c] text-[0.8rem] font-[500] pb-[10px] font-[poppins]'>{description.refDescription}</div>
+                                <div className='text-[#3c3c3c] text-[1rem] font-[600] pb-[0px] font-[poppins]'>Address</div>
                                 <div className='text-[#3c3c3c] text-[0.8rem] font-[500] pb-[15px] font-[poppins]'>{description.refGroundLocation}, {description.refGroundState}, {description.refGroundPincode} <span className="text-[#0377de] underline" onClick={() => setShowModal(true)}>View in Map</span></div>
                                 <div className="text-[#242424] font-[poppins] text-[0.9rem] font-[600] rounded-[10px] p-[px]">Features</div>
                                 <div className='text-[#3c3c3c] mt-[0.6rem] text-[0.8rem] font-[500] pb-[15px] font-[poppins]'>

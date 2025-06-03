@@ -1,5 +1,5 @@
-import { IonAlert, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonModal, IonPage, IonTitle, IonToggle, IonToolbar } from "@ionic/react";
-import { useEffect, useRef, useState } from "react";
+import { IonAlert, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonModal, IonPage, IonPicker, IonPickerColumn, IonPickerColumnOption, IonTitle, IonToggle, IonToolbar } from "@ionic/react";
+import { use, useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router";
 import { LuCalendar1 } from "react-icons/lu";
 import { IoIosArrowBack, IoMdClose } from "react-icons/io";
@@ -9,6 +9,7 @@ import axios from "axios";
 import { decrypt } from "../../Helper";
 import { TbRuler2Off } from "react-icons/tb";
 import { RadioButton } from 'primereact/radiobutton';
+import { FaPersonCirclePlus } from "react-icons/fa6";
 
 
 const ConfirmBooking = () => {
@@ -31,6 +32,8 @@ const ConfirmBooking = () => {
             setDates(parsedDates);
         }
     }, []);
+
+    const history = useHistory();
 
     const [addOnsData, setAddOnsData] = useState([]);
 
@@ -77,109 +80,165 @@ const ConfirmBooking = () => {
                 console.log(data)
                 if (data.success) {
 
-                    // const newData: any = []
+                    const newData: any = []
 
-                    // data.addons.map((element: any) => {
-                    //     console.log(element.refAddOnsId)
-                    //     const val: any = []
+                    data.addons.map((element: any) => {
+                        console.log(element.refAddOnsId)
+                        const val: any = []
 
-                    //     data.result.map((date: any) => {
-                    //         console.log(date.refAddOnsId + " " + date.unAvailabilityDate + " " + element.refAddOnsId)
+                        data.result.map((date: any) => {
+                            console.log(date.refAddOnsId + " " + date.unAvailabilityDate + " " + element.refAddOnsId)
 
-                    //         if (date.refAddOnsId === element.refAddOnsId) {
-                    //             val.push(date.unAvailabilityDate)
-                    //         }
-                    //     })
+                            if (date.refAddOnsId === element.refAddOnsId) {
+                                val.push(date.unAvailabilityDate)
+                            }
+                        })
 
 
-                    //     newData.push({
-                    //         label: element.refAddOn,
-                    //         id: element.refAddOnsId,
-                    //         strickedDate: val,
-                    //         price: element.refAddOnPrice
-                    //         subcategori
-                    //     });
-                    // });
+                        const subCategoryData: any = [];
 
-                    // setAmount(data.totalAmount)
 
-                    const newData = [
-                        {
-                            label: "Food",
-                            id: 1,
-                            strickedDate: ["29-05-2025", "30-05-2025"],
-                            price: null,
-                            subcategory: true,
-                            subcategoryData: [
-                                {
-                                    label: "Breakfast",
-                                    price: null,
-                                    subcategory: true,
+                        data.subAddOns.map((subcat: any) => {
+
+                            if (subcat.refAddOnsId === element.refAddOnsId) {
+
+                                console.log(subcat.refSubAddOnName)
+
+                                const itemData: any = []
+
+                                data.Items.map((item: any) => {
+                                    if (subcat.subAddOnsId === item.subAddOnsId) {
+                                        itemData.push({
+                                            id: item.refItemsId,
+                                            label: item.refItemsName,
+                                            price: parseInt(item.refItemsPrice)
+                                        })
+                                    }
+                                })
+
+
+                                subCategoryData.push({
+                                    id: subcat.subAddOnsId,
+                                    label: subcat.refSubAddOnName,
+                                    price: itemData.length > 0 ? null : parseInt(subcat.refSubAddOnPrice),
+                                    subcategory: itemData.length > 0 ? true : false,
                                     status: false,
-                                    itemsData: null,
-                                    subcategoryData: [
-                                        {
-                                            id: 1,
-                                            label: "Idly",
-                                            price: 30,
-                                        },
-                                        {
-                                            id: 2,
-                                            label: "Pongal",
-                                            price: 50,
-                                        }
-                                    ]
-                                },
-                                {
-                                    label: "Lunch",
-                                    price: null,
-                                    subcategory: true,
-                                    subcategoryData: [
-                                        {
-                                            id: 4,
-                                            label: "Veg Meal",
-                                            price: 100,
-                                        },
-                                        {
-                                            id: 5,
-                                            label: "Non-Veg Meal",
-                                            price: 100,
-                                        }
-                                    ]
-                                },
-                                {
-                                    label: "Dinner",
-                                    price: 89,
-                                    subcategory: false,
-                                    subcategoryData: []
-                                }
-                            ]
-                        },
-                        // {
-                        //     label: "Food",
-                        //     id: 2,
-                        //     strickedDate: ["12-06-2025"]
-                        // }
-                    ];
+                                    itemsData: itemData.length > 0 ? data.Items[0].refItemsId : null,
+                                    itemsPrice: itemData.length > 0 ? parseInt(data.Items[0].refItemsPrice) : null,
+                                    itemsLabel: itemData.length > 0 ? data.Items[0].refItemsName : null,
+                                    subcategoryData: itemData
+                                })
 
-                    // setAmount(data.totalAmount)
 
+                            }
+
+
+                        })
+
+                        newData.push({
+                            label: element.refAddOn,
+                            id: element.refAddOnsId,
+                            strickedDate: val,
+                            price: parseInt(element.refAddonPrice),
+                            person: 1,
+                            personStatus: false,
+                            subcategory: data.subAddOns.some((val: any) => val.refAddOnsId === element.refAddOnsId),
+                            subcategoryData: subCategoryData
+                        });
+                    });
+
+                    // setAmount(1000)
+
+                    // const newData = [
+                    //     {
+                    //         label: "Food",
+                    //         id: 1,
+                    //         strickedDate: ["29-05-2025", "30-05-2025"],
+                    //         price: null,
+                    //         person: 1,
+                    //         personStatus: false,
+                    //         subcategory: true,
+                    //         subcategoryData: [
+                    //             {
+                    //                 label: "Breakfast",
+                    //                 price: null,
+                    //                 subcategory: true,
+                    //                 status: false,
+                    //                 itemsData: null,
+                    //                 itemsPrice: null,
+                    //                 subcategoryData: [
+                    //                     {
+                    //                         id: 1,
+                    //                         label: "Idly",
+                    //                         price: 30,
+                    //                     },
+                    //                     {
+                    //                         id: 2,
+                    //                         label: "Pongal",
+                    //                         price: 50,
+                    //                     }
+                    //                 ]
+                    //             },
+                    //             {
+                    //                 label: "Lunch",
+                    //                 price: null,
+                    //                 subcategory: true,
+                    //                 status: false,
+                    //                 itemsData: null,
+                    //                 itemsPrice: null,
+                    //                 subcategoryData: [
+                    //                     {
+                    //                         id: 4,
+                    //                         label: "Veg Meal",
+                    //                         price: 100,
+                    //                     },
+                    //                     {
+                    //                         id: 5,
+                    //                         label: "Non-Veg Meal",
+                    //                         price: 100,
+                    //                     }
+                    //                 ]
+                    //             },
+                    //             {
+                    //                 label: "Dinner",
+                    //                 price: 89,
+                    //                 subcategory: false,
+                    //                 status: false,
+                    //                 itemsData: null,
+                    //                 itemsPrice: null,
+                    //                 subcategoryData: []
+                    //             }
+                    //         ]
+                    //     },
+                    //     {
+                    //         label: "Stay",
+                    //         id: 1,
+                    //         strickedDate: ["29-05-2025", "30-05-2025"],
+                    //         price: 1000,
+                    //         subcategory: false,
+                    //         person: 1,
+                    //         personStatus: false,
+                    //         subcategoryData: []
+                    //     },
+                    // ];
+
+                    setAmount(data.totalgroundPrice)
 
                     const val: any = newData.length > 0 ? newData.map((element: any) => {
-                        // Exclude stricked dates from availableDate
                         const availableDate = bookingAvailableDate.filter((d: string) =>
                             !element.strickedDate.includes(d)
                         );
                         return {
                             ...element,
-                            availableDate, // these are selectable
-                            status: false, // toggle
-                            selectedDates: availableDate, // user-selected dates for this add-on,
+                            availableDate,
+                            status: false,
+                            selectedDates: availableDate,
                             modelStatus: false,
                         };
                     }) : [];
                     setAddOnsData(val);
 
+                    console.log(val)
                 }
                 setLoading(false)
 
@@ -197,6 +256,7 @@ const ConfirmBooking = () => {
         const [day, month, year] = dateStr.split('-').map(Number);
         return new Date(year, month - 1, day);
     };
+
     const formatDate = (date: any) => {
         const dd = String(date.getDate()).padStart(2, '0');
         const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -204,31 +264,18 @@ const ConfirmBooking = () => {
         return `${dd}-${mm}-${yyyy}`;
     };
 
-    // useEffect(() => {
-    //     StatusBar.setOverlaysWebView({ overlay: false });
-    //     StatusBar.setStyle({ style: Style.Dark });
-    //     StatusBar.setBackgroundColor({ color: "#0377de" });
-
-    //     return () => {
-    //         StatusBar.setOverlaysWebView({ overlay: true });
-    //     };
-    // }, []);
-
-
     function groupDatesByMonth(dates: any) {
         const groups: any = {};
 
         dates.forEach((dateStr: any) => {
-            // Parse DD-MM-YYYY
             const [day, month, year] = dateStr.split("-");
             const jsDate = new Date(`${year}-${month}-${day}`);
             const monthName = jsDate.toLocaleString('default', { month: 'short' }); // 'Jun'
-            // Omit year if you don't want to show it
+
             if (!groups[monthName]) groups[monthName] = [];
             groups[monthName].push(day);
         });
 
-        // Sort days within each group
         Object.keys(groups).forEach(key => {
             groups[key].sort((a: any, b: any) => a - b);
         });
@@ -247,54 +294,74 @@ const ConfirmBooking = () => {
 
             const bookingAvailableDate = JSON.parse(localStorage.getItem("selectedDate") || "[]");
 
-            const addons: any = [];
+
+            console.log(addOnsData)
+
+
+            const addOnsVal: any = [];
 
 
             addOnsData.map((element: any) => {
-
-                addons.push({
-                    refAddOnsId: element.id,
-                    refAddOn: element.label,
-                    refPrice: element.price,
-                    selectedDates: element.status ? element.selectedDates : []
+                const subAddOnsVal: any = [];
+                element.subcategoryData.map((subcat: any) => {
+                    if (subcat.status && subcat.subcategory) {
+                        subAddOnsVal.push({
+                            refSubaddonId: subcat.id,
+                            refSubaddonLabel: subcat.label,
+                            refSubaddonprice: subcat.price,
+                            isItemsNeeded: subcat.status && subcat.itemsPrice ? true : false,
+                            refItems: subcat.status && subcat.itemsPrice ? [{ refItemsId: subcat.itemsData }] : [],
+                            refItemsLabel: subcat.status && subcat.itemsPrice ? [{ refItemsLabel: subcat.itemsLabel }] : [],
+                            refItemsPrice: subcat.status && subcat.itemsPrice ? [{ refItemsPrice: subcat.itemsPrice }] : []
+                        })
+                    } else if (subcat.status && !subcat.subcategory) {
+                        subAddOnsVal.push({
+                            refSubaddonId: subcat.id,
+                            isItemsNeeded: false,
+                            refItems: [],
+                            refSubaddonLabel: subcat.label,
+                            refSubaddonprice: subcat.price,
+                        })
+                    }
                 })
 
-
+                if (element.status && subAddOnsVal.length > 0) {
+                    addOnsVal.push({
+                        refLabel: element.label,
+                        refPrice: element.price,
+                        refAddOnsId: element.id,
+                        selectedDates: element.selectedDates,
+                        refPersonCount: element.person,
+                        isSubaddonNeeded: subAddOnsVal.length > 0 ? true : false,
+                        refSubaddons: subAddOnsVal.length > 0 ? subAddOnsVal : []
+                    })
+                } else if (!element.subcategory && element.status) {
+                    addOnsVal.push({
+                        refLabel: element.label,
+                        refPrice: element.price,
+                        refAddOnsId: element.id,
+                        selectedDates: element.selectedDates,
+                        refPersonCount: element.person,
+                        isSubaddonNeeded: subAddOnsVal.length > 0 ? true : false,
+                        refSubaddons: subAddOnsVal.length > 0 ? subAddOnsVal : []
+                    })
+                }
             })
 
 
-            const totalAmount = (amount + addOnsData.reduce((total: number, element: any) => {
-                return total + (element.status ? element.selectedDates.length * element.price : 0);
-            }, 0)) + ((amount + addOnsData.reduce((total: number, element: any) => {
-                return total + (element.status ? element.selectedDates.length * element.price : 0);
-            }, 0)) * 0.09) + ((amount + addOnsData.reduce((total: number, element: any) => {
-                return total + (element.status ? element.selectedDates.length * element.price : 0);
-            }, 0)) * 0.09)
+
+            console.log(addOnsVal)
 
 
-            const bookingAmount = amount;
-
-            const sgst = ((amount + addOnsData.reduce((total: number, element: any) => {
-                return total + (element.status ? element.selectedDates.length * element.price : 0);
-            }, 0)) * 0.09)
-
-            const cgst = ((amount + addOnsData.reduce((total: number, element: any) => {
-                return total + (element.status ? element.selectedDates.length * element.price : 0);
-            }, 0)) * 0.09)
-
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/v1/userRoutes/userGroundBooking`,
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/v1/userRoutes/payConvertString`,
                 {
                     refGroundId: groundId,
-                    isAddonNeeded: true,
+                    isAddonNeeded: addOnsVal.length > 0 ? true : false,
                     refBookingTypeId: 1,
                     refBookingStartDate: bookingAvailableDate[0],
                     refBookingEndDate: bookingAvailableDate[bookingAvailableDate.length - 1],
                     additionalNotes: "",
-                    refAddOns: addons,
-                    refTotalAmount: totalAmount,
-                    refBookingAmount: bookingAmount,
-                    refSGSTAmount: sgst,
-                    refCGSTAmount: cgst,
+                    refAddOns: addOnsVal
                 },
                 {
                     headers: {
@@ -312,14 +379,14 @@ const ConfirmBooking = () => {
 
             console.log(data)
 
-            localStorage.setItem("token", "Bearer " + data.token)
+            // localStorage.setItem("token", "Bearer " + data.token)
 
             if (data.success) {
-                location.replace("/bookinghistory");
-                setAddOnsData([]);
+                // location.replace("/bookinghistory");
+                history.replace("/home")
 
+                window.open(`${import.meta.env.VITE_PAYMENT_URL}?token=${data.token}`, '_blank');
             }
-
 
         } catch (e) {
             console.log(e);
@@ -331,6 +398,32 @@ const ConfirmBooking = () => {
 
     const [paymentAlert, setPaymentAlert] = useState(false);
 
+    const calculateTotalAmount = (data: any, val: number) => {
+        let total = 0;
+        total += amount;
+        data.map((element: any) => {
+            if (element.subcategory) {
+                element.subcategoryData.map((subcat: any) => {
+                    if (subcat.subcategory) {
+                        if (subcat.status) {
+                            total += subcat.itemsPrice * element.person * element.selectedDates.length;
+                        }
+                    } else {
+                        if (subcat.status) {
+                            total += subcat.price * element.person * element.selectedDates.length;
+                        }
+                    }
+                })
+            } else {
+                if (element.status) {
+                    total += element.price * element.person * element.selectedDates.length;
+                }
+            }
+        })
+        return (total * val).toFixed(2)
+
+    }
+
     return (
         <IonPage>
             <IonHeader>
@@ -340,11 +433,6 @@ const ConfirmBooking = () => {
                     </IonButtons>
                     <IonTitle>Confirm Booking</IonTitle>
                 </IonToolbar>
-                {/* <div className="text-[#fff] bg-[#0377de] flex justify-between items-center px-[1.5rem] h-[8vh] text-[1.3rem]">
-                    <div><IoIosArrowBack className="text-[1.5rem]" onClick={() => { history.goBack() }} /></div>
-                    <div className="text-[1rem] font-[poppins] font-[600] text-[#fff] ml-[-1.2rem]">Confirm Booking</div>
-                    <div></div>
-                </div> */}
             </IonHeader>
             <IonContent>
                 {
@@ -412,13 +500,17 @@ const ConfirmBooking = () => {
                                 </IonContent>
                             </IonModal>
 
-
-
                             <div className="bg-[#fff] w-[100%] overflow-auto px-[1rem] py-[1rem] pb-[4rem]">
 
-                                <div className="w-[100%] bg-[#e7e7e7] p-[10px] rounded-[10px] ">
-                                    <div className="text-[0.9rem] font-[poppins] text-[#242424] font-[600] flex justify-between items-baseline-last border-b-[1px] pb-[10px]"><div>Slot Booking ({JSON.parse(localStorage.getItem("selectedDate") || "[]").length} x {localStorage.getItem("price")} = ₹ {amount})</div> <div className="text-[1.4rem] flex justify-center items-center" onClick={() => setShowSlots(true)}><LuCalendar1 /></div></div>
-                                    <div className="mt-[10px] mb-[3px]">
+                                <div className="w-[100%] bg-[#e9f3fe] p-[10px] rounded-[10px] " style={{ boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px" }}>
+                                    <div className="text-[0.9rem] font-[poppins] text-[#242424] font-[600] flex justify-between items-baseline-last border-b-[1px] pb-[10px]">
+                                        <div>Slot Booking</div>
+                                        <div className="flex gap-[1rem]">
+                                            {/* <div className="text-[1.4rem] flex justify-center items-center" onClick={() => setShowsPerson(true)}><FaPersonCirclePlus /></div> */}
+                                            <div className="text-[1.4rem] flex justify-center items-center" onClick={() => setShowSlots(true)}><LuCalendar1 /></div>
+                                        </div>
+                                    </div>
+                                    <div className="mt-[10px] mb-[3px] pb-[10px] border-b-[1px] border-[#000]">
                                         <div className="overflow-x-auto rounded-lg shadow flex flex-col justify-center items-center">
                                             <div className="text-start w-[100%] text-[#242424] text-[0.8rem] font-[poppins] font-[500]">{
                                                 // JSON.parse(localStorage.getItem("selectedDate") || "[]").map((val: any, index: any) => (
@@ -433,31 +525,52 @@ const ConfirmBooking = () => {
                                             }</div>
                                         </div>
                                     </div>
+                                    <div className="mt-[10px] text-[#242424] text-[0.8rem] font-[poppins] font-[600]">
+                                        {JSON.parse(localStorage.getItem("selectedDate") || "[]").length} {JSON.parse(localStorage.getItem("selectedDate") || "[]").length > 1 ? "Days" : "Day"} x&nbsp;
+                                        {amount / JSON.parse(localStorage.getItem("selectedDate") || "[]").length} Amount =&nbsp;
+                                        ₹ {amount}
+                                    </div>
                                 </div>
 
                                 {
                                     addOnsData.map((element: any, index: any) => (
                                         <div key={index}>
-                                            <div className="w-[100%] mt-[0.6rem] bg-[#e7e7e7] p-[10px] rounded-[10px] flex flex-col ">
-                                                <div className={`flex justify-between items-baseline-last ${element.status && "border-b-[1px] pb-[10px] text-[#242424]"}`}>
+                                            <div className="w-[100%] mt-[0.8rem] bg-[#e9f3fe] p-[10px] rounded-[10px] flex flex-col" style={{ boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px" }}>
+                                                <div className={`flex justify-between items-center ${element.status && "border-b-[1px] pb-[10px] text-[#242424]"}`}>
                                                     <div className="text-[#242424] text-[0.9rem] font-[poppins] font-[600]">
-                                                        {/* ({element.status && index === 0 ? `1 x ${foodRate}` : `1 x ${stayRate}`} = ₹ {index === 0 ? foodRate : stayRate}) */}
-                                                        {element.label}  {
-                                                            element.status && (
+                                                        {element.label}
+                                                        {
+                                                            !element.subcategory && element.status && (
                                                                 <>
-                                                                    ({element.selectedDates.length} x {element.price} = ₹ {element.price * element.selectedDates.length})
+                                                                    <br />
+                                                                    (₹ {element.price} Per Person)
                                                                 </>
                                                             )
                                                         }
                                                     </div>
 
                                                     <div className="flex gap-[10px] text-[#242424]">
-                                                        <div className="text-[1.4rem] flex justify-center items-center" onClick={() => {
-                                                            const newAddOns = [...addOnsData];
-                                                            element.modelStatus = !element.modelStatus;
-                                                            setAddOnsData(newAddOns);
+                                                        {
+                                                            element.status && (
+                                                                <div className="flex gap-[10px]"> <div className="text-[1.4rem] flex justify-center items-center" onClick={() => {
+                                                                    const newAddOns = [...addOnsData];
+                                                                    element.personStatus = !element.personStatus;
+                                                                    setAddOnsData(newAddOns);
 
-                                                        }}><LuCalendar1 /></div>
+                                                                }}>
+                                                                    <FaPersonCirclePlus />
+                                                                </div>
+                                                                    <div className="text-[1.4rem] flex justify-center items-center" onClick={() => {
+                                                                        const newAddOns = [...addOnsData];
+                                                                        element.modelStatus = !element.modelStatus;
+                                                                        setAddOnsData(newAddOns);
+
+                                                                    }}>
+                                                                        <LuCalendar1 />
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        }
                                                         <IonToggle
                                                             checked={element.status}
                                                             onIonChange={() => {
@@ -483,9 +596,11 @@ const ConfirmBooking = () => {
                                                         </IonToggle>
                                                     </div>
                                                 </div>
+
+
                                                 {element.status && (
                                                     <div className="mt-[10px]">
-                                                        <div className="text-start w-[100%] text-[#242424] text-[0.8rem] font-[poppins] font-[500] border-b-[1px] pb-[10px]">
+                                                        <div className={`text-start w-[100%] text-[#242424] text-[0.8rem] font-[poppins] font-[500] border-b-[1px] pb-[10px]`}>
                                                             {element.selectedDates.length === 0 ? (
                                                                 "No Dates Choosen"
                                                             ) : (
@@ -503,12 +618,15 @@ const ConfirmBooking = () => {
 
                                                                     <div className="text-[#242424] pt-[10px] font-[poppins] font-[600]">SubCategories</div>
                                                                     {
-                                                                        element.subcategoryData.map((subAddons: any) => (
+                                                                        element.subcategoryData.map((subAddons: any, indexSub: any) => (
                                                                             <>
-                                                                                <div className="border-b-[1px] border-[#000] ">
+                                                                                <div className={`border-b-[1px] border-[#000]`}>
                                                                                     <div className="ml-[0.5rem] mt-[10px] font-[500]  border-[#000] pb-[10px] flex">
-                                                                                        <div className="text-start w-[100%] text-[#242424] text-[0.9rem] font-[poppins] flex justify-between items-center">{subAddons.label}</div>
-                                                                                        <div className="flex gap-[10px] text-[#242424]">
+                                                                                        <div className="text-start w-[100%] text-[#242424] text-[0.9rem] font-[poppins] flex justify-between items-center">
+                                                                                            {subAddons.label}
+                                                                                            <br />
+                                                                                            {!subAddons.subcategory && "( ₹ " + subAddons.price + " Per Person )"}</div>
+                                                                                        <div className="flex gap-[10px] text-[#242424] items-center">
                                                                                             <IonToggle
                                                                                                 checked={subAddons.status}
                                                                                                 onIonChange={() => {
@@ -539,11 +657,11 @@ const ConfirmBooking = () => {
                                                                                         subAddons.status && (
                                                                                             <>
                                                                                                 {subAddons.subcategoryData.map((items: any, index: any) => (
-                                                                                                    <div key={index} className="ml-[1rem] mr-[2rem] mt-[10px] font-[500] border-[#000] pb-[10px] flex">
+                                                                                                    <div key={index} className="ml-[1rem] mr-[2rem] font-[500] border-[#000] pb-[10px] flex">
                                                                                                         <div className="text-start w-[100%] text-[#242424] text-[0.9rem] font-[poppins] flex justify-between items-center">
-                                                                                                            {items.label}
+                                                                                                            {items.label} <br /> ( ₹{items.price} Per Person )
                                                                                                         </div>
-                                                                                                        <div className="flex gap-[10px] text-[#242424]">
+                                                                                                        <div className="flex gap-[10px] text-[#242424] items-center">
                                                                                                             <input
                                                                                                                 type="radio"
                                                                                                                 name={`subcategory-${items.id}`}
@@ -551,6 +669,8 @@ const ConfirmBooking = () => {
                                                                                                                 onChange={() => {
                                                                                                                     const newAddOns = [...addOnsData];
                                                                                                                     subAddons.itemsData = items.id;
+                                                                                                                    subAddons.itemsPrice = items.price;
+                                                                                                                    subAddons.itemsLabel = items.label;
                                                                                                                     setAddOnsData(newAddOns);
                                                                                                                 }}
                                                                                                             />
@@ -569,11 +689,127 @@ const ConfirmBooking = () => {
                                                             )
                                                         }
 
+                                                        <div className="mt-[10px] text-[#242424] text-[0.8rem] font-[poppins] font-[600]">
+                                                            {
+                                                                element.subcategory ? (
+                                                                    <>
+                                                                        {
+                                                                            element.subcategoryData.map((subcat: any) => (
+                                                                                <>
+                                                                                    <div className="pt-[10px]">
+                                                                                        {
+                                                                                            subcat.label
+                                                                                        }
+                                                                                        {
+                                                                                            subcat.subcategory ? (
+                                                                                                <>
+                                                                                                    <br />
+                                                                                                    {
+                                                                                                        subcat.status && subcat.itemsData ? (
+                                                                                                            <>
+                                                                                                                (
+                                                                                                                {element.selectedDates.length} {element.selectedDates.length > 1 ? "Days" : "Days"} x&nbsp;
+                                                                                                                {element.person} {element.person > 1 ? "People" : "Person"} x&nbsp;
+                                                                                                                ₹ {subcat.itemsPrice} =&nbsp;
+                                                                                                                ₹ {element.selectedDates.length * parseInt(element.person) * subcat.itemsPrice}
+                                                                                                                )
+                                                                                                            </>
+                                                                                                        ) : (
+                                                                                                            <>Not Seleted</>
+                                                                                                        )
+                                                                                                    }
+                                                                                                </>
+                                                                                            ) : (
+                                                                                                <>
+                                                                                                    {
+                                                                                                        subcat.status ? (
+                                                                                                            <>
+                                                                                                                <br />
+                                                                                                                (
+                                                                                                                {element.selectedDates.length} {element.selectedDates.length > 1 ? "Days" : "Days"} x&nbsp;
+                                                                                                                {element.person} {element.person > 1 ? "People" : "Person"} x&nbsp;
+                                                                                                                ₹ {subcat.price} =&nbsp;
+                                                                                                                ₹ {element.selectedDates.length * parseInt(element.person) * subcat.price}
+                                                                                                                )
+                                                                                                            </>
+                                                                                                        ) : (
+                                                                                                            <>
+                                                                                                                <br />
+                                                                                                                Not Selected
+                                                                                                            </>
+                                                                                                        )
+                                                                                                    }
+                                                                                                </>
+                                                                                            )
+                                                                                        }
+                                                                                    </div>
+                                                                                </>
+                                                                            ))
+                                                                        }
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        {element.label}&nbsp;
+                                                                        <br />
+                                                                        (
+                                                                        {element.selectedDates.length} {element.selectedDates.length > 1 ? "Days" : "Days"} x&nbsp;
+                                                                        {element.person} {element.person > 1 ? "People" : "Person"} x&nbsp;
+                                                                        ₹ {element.price} =&nbsp;
+                                                                        {element.selectedDates.length * parseInt(element.person) * element.price}
+                                                                        )
+                                                                    </>
+                                                                )
+                                                            }
+                                                        </div>
+
                                                     </div>
                                                 )}
 
                                             </div>
 
+
+                                            <IonModal
+                                                isOpen={element.personStatus}
+                                                onDidDismiss={() => {
+                                                    const newAddOns = [...addOnsData];
+                                                    element.personStatus = false;
+                                                    setAddOnsData(newAddOns);
+                                                }}
+                                                initialBreakpoint={0.56}
+                                                breakpoints={[0.56]}
+                                                handleBehavior="none"
+                                            >
+                                                <IonContent>
+                                                    <div className="w-[100%] h-[100%] bg-[#f6f6f6]">
+                                                        <div className="h-[100%] w-[100%] p-[0.8rem] flex flex-col justify-around items-center">
+                                                            <div className=" px-[2rem] w-[100%] h-[10%] flex justify-between items-center text-[#282828] text-[1.4rem]">
+                                                                <div className="text-[1rem] font-[600] font-[poppins]">{element.label}</div>
+                                                                <div className="" onClick={() => {
+                                                                    const newAddOns = [...addOnsData];
+                                                                    element.personStatus = false;
+                                                                    setAddOnsData(newAddOns);
+                                                                }}
+                                                                ><IoMdClose /></div>
+                                                            </div>
+                                                            <div className="h-[80%] w-[100%]">
+                                                                <IonPicker className="custom-picker">
+                                                                    <IonPickerColumn className="custom-picker" value={element.person} onIonChange={(e: any) => {
+                                                                        const newAddOns = [...addOnsData];
+                                                                        element.person = e.target.value;
+                                                                        setAddOnsData(newAddOns);
+                                                                    }}>
+                                                                        {Array.from({ length: 30 }, (_, i) => i + 1).map((a: number) => (
+                                                                            <IonPickerColumnOption key={a} value={a}>
+                                                                                {a} {a === 1 ? 'Person' : 'People'}
+                                                                            </IonPickerColumnOption>
+                                                                        ))}
+                                                                    </IonPickerColumn>
+                                                                </IonPicker>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </IonContent>
+                                            </IonModal>
 
 
                                             <IonModal
@@ -650,72 +886,19 @@ const ConfirmBooking = () => {
                                                     </div>
                                                 </IonContent>
                                             </IonModal>
-
-
-                                            {/* {element.status && (
-                                    <div className="w-[100%] bg-[#e7e7e7] mt-[0.6rem] p-[10px] rounded-[10px] ">
-                                        <Calendar
-                                            className="w-[100%]"
-                                            value={element.selectedDates.map(parseDateString)}
-                                            onChange={e => {
-                                                // Only allow selecting availableDate
-                                                const selected = Array.isArray(e.value) ? e.value : [e.value];
-                                                const selectedStr = selected.map(formatDate);
-                                                const filtered = selectedStr.filter(d => element.availableDate.includes(d));
-                                                const newAddOns = [...addOnsData];
-                                                element.selectedDates = filtered;
-                                                setAddOnsData(newAddOns);
-                                            }}
-                                            selectionMode="multiple"
-                                            inline
-                                            minDate={new Date()} // or earliest available
-                                            maxDate={new Date(2100, 11, 31)}
-                                            dateTemplate={dayObj => {
-                                                const date = new Date(dayObj.year, dayObj.month, dayObj.day);
-                                                const dateStr = formatDate(date);
-                                                const isStricked = element.strickedDate.includes(dateStr);
-                                                const isAvailable = element.availableDate.includes(dateStr);
-                                                return (
-                                                    <div className={`p-day`}>
-                                                        <span
-                                                            className={
-                                                                isStricked
-                                                                    ? "strike-date"
-                                                                    : isAvailable
-                                                                        ? ""
-                                                                        : "p-disabled"
-                                                            }
-                                                            style={{
-                                                                textDecoration: isStricked ? "line-through" : "none",
-                                                                color: isStricked ? "#b71c1c" : undefined,
-                                                                opacity: isAvailable ? 1 : 0.3,
-                                                                pointerEvents: isAvailable ? "auto" : "none"
-                                                            }}
-                                                        >
-                                                            {dayObj.day}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            }}
-                                            disabledDates={element.strickedDate.map(parseDateString)}
-                                        // Only allow availableDate
-                                        // PrimeReact doesn't have an allowDates prop, so we handle in onChange and dateTemplate
-                                        />
-                                    </div>
-                                )} */}
                                         </div>
                                     ))
                                 }
 
-                                <div className="w-[100%] bg-[#e7e7e7] my-[20px] p-[10px] rounded-[10px] ">
+                                <div className="w-[100%] bg-[#e9f3fe] my-[20px] p-[10px] rounded-[10px] ">
                                     <div className="flex justify-between">
                                         <div className="text-[0.9rem] font-[poppins] text-[#242424] font-[600]">
                                             Net Amount
                                         </div>
                                         <div className="text-[0.9rem] font-[poppins] text-[#242424] font-[600]">
-                                            ₹ {amount + addOnsData.reduce((total: number, element: any) => {
-                                                return total + (element.status ? element.selectedDates.length * element.price : 0);
-                                            }, 0)}
+                                            ₹&nbsp;{
+                                                calculateTotalAmount(addOnsData, 1)
+                                            }
 
                                         </div>
                                     </div>
@@ -724,9 +907,9 @@ const ConfirmBooking = () => {
                                             SGST (9%)
                                         </div>
                                         <div className="text-[0.9rem] font-[poppins] text-[#242424] font-[600]">
-                                            ₹ {(amount + addOnsData.reduce((total: number, element: any) => {
-                                                return total + (element.status ? element.selectedDates.length * element.price : 0);
-                                            }, 0)) * 0.09}
+                                            ₹&nbsp;{
+                                                calculateTotalAmount(addOnsData, 0.09)
+                                            }
 
                                         </div>
                                     </div>
@@ -735,10 +918,9 @@ const ConfirmBooking = () => {
                                             CGST (9%)
                                         </div>
                                         <div className="text-[0.9rem] font-[poppins] text-[#242424] font-[600]">
-                                            ₹ {(amount + addOnsData.reduce((total: number, element: any) => {
-                                                return total + (element.status ? element.selectedDates.length * element.price : 0);
-                                            }, 0)) * 0.09}
-
+                                            ₹&nbsp;{
+                                                calculateTotalAmount(addOnsData, 0.09)
+                                            }
                                         </div>
                                     </div>
                                     <div className="flex justify-between">
@@ -746,107 +928,15 @@ const ConfirmBooking = () => {
                                             Total Payable Amount
                                         </div>
                                         <div className="text-[0.9rem] font-[poppins] text-[#242424] font-[600]">
-                                            ₹ {(amount + addOnsData.reduce((total: number, element: any) => {
-                                                return total + (element.status ? element.selectedDates.length * element.price : 0);
-                                            }, 0)) + ((amount + addOnsData.reduce((total: number, element: any) => {
-                                                return total + (element.status ? element.selectedDates.length * element.price : 0);
-                                            }, 0)) * 0.09) + ((amount + addOnsData.reduce((total: number, element: any) => {
-                                                return total + (element.status ? element.selectedDates.length * element.price : 0);
-                                            }, 0)) * 0.09)}
+                                            ₹&nbsp;{
+                                                (
+                                                    (parseFloat(calculateTotalAmount(addOnsData, 1)) + parseFloat(calculateTotalAmount(addOnsData, 0.09)) + parseFloat(calculateTotalAmount(addOnsData, 0.09)))
+                                                ).toFixed(2)
+                                            }
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* <div className="w-[100%] mt-[0.6rem] bg-[#e7e7e7] p-[10px] rounded-[10px] flex justify-between items-center">
-                        <div className="text-[#242424] text-[0.9rem] font-[poppins] font-[600]">Add Stay</div>
-                        <div>
-                            <IonToggle
-                                checked={isStayToggled}
-                                onIonChange={(e) => setIsStayToggled(e.detail.checked)}
-                                labelPlacement="stacked"
-                                className="custom-toggle"
-                                style={{
-                                    '--handle-background-checked': '#0377de',
-                                    '--track-background-checked': '#badeff',
-                                    '--handle-background': 'gray',
-                                    '--track-background': '#ccc',
-                                    '--track-height': '16px',       // Smaller height
-                                    '--track-width': '32px',        // Adjust width accordingly
-                                    margin: '0',                    // Remove default margin
-                                    padding: '0',                   // Remove padding if any
-                                    textAlign: 'center',
-                                }}
-                            >
-                            </IonToggle>
-                        </div>
-                    </div>
-
-                    {
-                        isStayToggled && (
-                            <div className="w-[100%] bg-[#e7e7e7] mt-[0.6rem] p-[10px] rounded-[10px] ">
-                                <div className="text-[0.9rem] font-[poppins] text-[#242424] font-[600]">Stay Availability</div>
-                                <div className="my-[10px]">
-                                    <div className="overflow-x-auto rounded-lg shadow">
-                                        <table className="min-w-full border-collapse  font-poppins text-[#242424] font-semibold text-[0.8rem]">
-                                            <thead>
-                                                <tr className="bg-[#fafbfb] font-[poppins]" style={{ borderBottom: "1px solid #eaecf0" }}>
-                                                    <th className=" px-[10px] py-[10px] text-left">Date</th>
-                                                    <th className=" px-[10px] py-[10px] text-left">Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr className="bg-[#fff] font-[poppins]" style={{ borderBottom: "1px solid #eaecf0" }}>
-                                                    <td className=" px-[10px] py-[10px]">24-05-2025</td>
-                                                    <td className=" px-[10px] py-[10px]"><div className="bg-[#ecfdf3] rounded-[5px]  text-center text-[green] text-[0.9rem] font-[500]">Available</div></td>
-                                                </tr>
-                                                <tr className="bg-[#fff] font-[poppins]" style={{ borderBottom: "1px solid #eaecf0" }}>
-                                                    <td className=" px-[10px] py-[10px]">25-05-2025</td>
-                                                    <td className=" px-[10px] py-[10px]"><div className="bg-[#fff2ea] rounded-[5px]  text-center text-[red] text-[0.9rem] font-[500]">Unavailable</div></td>
-                                                </tr>
-                                                <tr className="bg-[#fff] font-[poppins]" style={{ borderBottom: "1px solid #eaecf0" }}>
-                                                    <td className=" px-[10px] py-[10px]">26-05-2025</td>
-                                                    <td className=" px-[10px] py-[10px]"><div className="bg-[#ecfdf3] rounded-[5px]  text-center text-[green] text-[0.9rem] font-[500]">Available</div></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    }
-
-                    <div className="w-[100%] bg-[#e7e7e7] p-[10px] mt-[20px] rounded-[10px] flex justify-between items-center">
-                        <div className="text-[#242424] font-[poppins] font-[600] text-[0.9rem]">Add Food</div>
-                        <div>
-                            <IonToggle
-                                checked={isFoodToggled}
-                                onIonChange={(e) => setIsFoodToggled(e.detail.checked)}
-                                labelPlacement="stacked"
-                                className="custom-toggle"
-                                style={{
-                                    '--handle-background-checked': '#0377de',
-                                    '--track-background-checked': '#badeff',
-                                    '--handle-background': 'gray',
-                                    '--track-background': '#ccc',
-                                    '--track-height': '16px',       // Smaller height
-                                    '--track-width': '32px',        // Adjust width accordingly
-                                    margin: '0',                    // Remove default margin
-                                    padding: '0',                   // Remove padding if any
-                                    textAlign: 'center',
-                                }}
-                            >
-                            </IonToggle>
-                        </div>
-                    </div>
-
-                    {
-                        isFoodToggled && (
-                            <div className="w-[100%] bg-[#e7e7e7] mt-[0.6rem] p-[10px] rounded-[10px] ">
-                                <div className="bg-[#ecfdf3] rounded-[5px] font-[poppins]  text-left text-[green] text-[0.8rem] font-[500] px-[10px] py-[5px]">Food is Available</div>
-                            </div>
-                        )
-                    } */}
 
                                 <div className="flex justify-center">
                                     <IonButton
@@ -855,14 +945,11 @@ const ConfirmBooking = () => {
                                             if (!paymentLoading) {
                                                 setPaymentAlert(true)
                                             }
-                                        }} className="custom-ion-button w-[90%] h-[5vh] text-[#fff] text-[0.8rem] font-[poppins]">  {paymentLoading ? (<i className="pi pi-spin pi-spinner" style={{ fontSize: '1rem' }}></i>) : `Pay ₹  ${(amount + addOnsData.reduce((total: number, element: any) => {
-                                            return total + (element.status ? element.selectedDates.length * element.price : 0);
-                                        }, 0) + ((amount + addOnsData.reduce((total: number, element: any) => {
-                                            return total + (element.status ? element.selectedDates.length * element.price : 0);
-                                        }, 0)) * 0.09) + ((amount + addOnsData.reduce((total: number, element: any) => {
-                                            return total + (element.status ? element.selectedDates.length * element.price : 0);
-                                        }, 0)) * 0.09))
-                                            }`}</IonButton>
+                                        }} className="custom-ion-button w-[90%] h-[5vh] text-[#fff] text-[0.8rem] font-[poppins]">  {paymentLoading ? (<i className="pi pi-spin pi-spinner" style={{ fontSize: '1rem' }}></i>) : `Pay ₹ ${(
+                                            (parseFloat(calculateTotalAmount(addOnsData, 1)) + parseFloat(calculateTotalAmount(addOnsData, 0.09)) + parseFloat(calculateTotalAmount(addOnsData, 0.09)))
+                                        ).toFixed(2)
+                                            }
+                                            `}</IonButton>
                                 </div>
                             </div>
                         </>
