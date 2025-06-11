@@ -146,7 +146,7 @@ const SignupScreen = () => {
                     <IonButtons slot="start">
                         <IonBackButton defaultHref="/home" mode="md"></IonBackButton>
                     </IonButtons>
-                    <IonTitle>Register Account</IonTitle>
+                    <IonTitle>User Register Account</IonTitle>
                 </IonToolbar>
             </IonHeader>
             <IonContent>

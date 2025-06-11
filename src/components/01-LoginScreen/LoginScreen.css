@@ -16,3 +16,24 @@
 .p-icon-field-right input {
   width: 100%;
 }
+
+.custom-ion-buttonYes {
+  --background: #9c9c9c;
+  --background-hover: #414141;
+  --background-activated: #7f7f7f;
+  --color: #ffffff;
+}
+
+.p-button.p-fileupload-choose.p-component {
+  width: 50%;
+}
+.p-button.p-component.p-disabled {
+  padding: 10px;
+}
+.p-button.p-component {
+  padding: 10px;
+}
+
+.p-fileupload-file-badge.p-badge.p-component.p-badge-warning {
+  display: none !important;
+}

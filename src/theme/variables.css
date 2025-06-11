@@ -34,9 +34,13 @@ http://ionicframework.com/docs/theming/ */
 }
 
 .p-highlight {
-  background: #4caf50 !important; /* Green background */
-  color: white !important; /* White text */
-  border-radius: 50%; /* Circle highlight */
+  background: #65abea !important;
+  color: white !important;
+  /* border-radius: 100%;  */
+}
+
+.p-radiobutton.p-component.p-highlight {
+  background: transparent !important;
 }
 
 .strike-date {
@@ -208,3 +212,23 @@ ion-app {
   display: none;
 }
 
+/* OFF - dark blue */
+.custom-toggle::part(track) {
+  background-color: #1e3a8a; /* Tailwind dark blue-800 */
+  transition: background-color 0.3s ease;
+}
+
+/* ON - light blue */
+.custom-toggle.toggle-checked::part(track) {
+  background-color: #93c5fd !important; /* Tailwind light blue-300 */
+}
+.custom-placeholder-black::part(native)::-webkit-input-placeholder {
+  color: black !important;
+}
+.custom-placeholder-black::part(native)::placeholder {
+  color: black !important;
+}
+
+.ion-margin-bottom ion-padding ios list-ios{
+   background-color: #d3d3d3 !important;
+}

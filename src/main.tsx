@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import "./main.css";
 
 import 'primereact/resources/themes/lara-light-indigo/theme.css'; // or other themes
 import 'primereact/resources/primereact.min.css';
