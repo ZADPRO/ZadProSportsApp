@@ -18,10 +18,16 @@ import { Skeleton } from "primereact/skeleton";
 import Logo from "../../assets/images/unavailable.png";
 import user from "../../assets/images/user.jpg";
 import { IoAdd } from "react-icons/io5";
+import Dashboard from "../../pages/04-Dashboard/Dashboard";
+import LoadingFile from "../../assets/svgfloder/Animation/Ball.json";
+import Boy from "../../assets/svgfloder/Animation/esTxX5Rd3L.json";
+import Lottie from "lottie-react";
 
 const HomeScreen = () => {
   const [loading, setLoading] = useState(false);
   const [groundDetails, setGroundDetails] = useState([]);
+  const [dashboard, setDashboard] = useState<any>(null);
+
   const [selectedDetails, setSelectedDetails] = useState();
   const [name, setName] = useState("User");
   const [groundtypes, setGroundTypes]: any = useState([]);
@@ -30,6 +36,39 @@ const HomeScreen = () => {
 
   const history = useHistory();
   const location = useLocation();
+
+  const fetchOwner = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/v1/ownerRoutes/ownerHistoryWithStatus`,
+        {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = decrypt(
+        response.data[1],
+        response.data[0],
+        import.meta.env.VITE_ENCRYPTION_KEY
+      );
+
+      localStorage.setItem("token", "Bearer " + data.token);
+      console.log("fetchGround----->", data.result[0]);
+      setDashboard(data.result[0]);
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+      console.log(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchOwner();
+  }, []);
   useEffect(() => {
     const init = async () => {
       if (roleID === "4") {
@@ -95,7 +134,6 @@ const HomeScreen = () => {
         import.meta.env.VITE_ENCRYPTION_KEY
       );
       localStorage.setItem("token", "Bearer " + data.token);
-      console.log("fetchGroundTypes", data);
       setGroundTypes(data.result);
       setSelectedDetails(data.result[0].refSportsCategoryId);
       setLoading(false);
@@ -106,6 +144,7 @@ const HomeScreen = () => {
       return 0;
     }
   };
+
   const fetchGround = async () => {
     try {
       const response = await axios.get(
@@ -124,7 +163,6 @@ const HomeScreen = () => {
         import.meta.env.VITE_ENCRYPTION_KEY
       );
       localStorage.setItem("token", "Bearer " + data.token);
-      console.log("fetchGround", data);
       setAddedGround(data.result);
       setLoading(false);
       return data.result[0].refSportsCategoryId;
@@ -159,11 +197,11 @@ const HomeScreen = () => {
     const storedName = localStorage.getItem("name");
     const roleID = localStorage.getItem("roleID");
 
-    if (roleID === "4" && storedName) {
-      setName(storedName);
-    } else {
-      setName("User");
-    }
+    // if (roleID === "4" && storedName) {
+    //   setName(storedName);
+    // } else {
+    //   setName(storedName);
+    // }
   }, [location]);
 
   const handleRefresh = (event: any) => {
@@ -172,6 +210,8 @@ const HomeScreen = () => {
       fetchData(id);
     };
     init();
+    setLoading(true);
+    fetchOwner().finally(() => setLoading(false));
     event.detail.complete();
   };
 
@@ -214,53 +254,25 @@ const HomeScreen = () => {
           <IonRefresherContent />
         </IonRefresher>
 
-        {loading ? (
+        {/* --------- HOME VIEW --------- */}
+        {roleID === "2" && (
           <div className="bg-[#fff] w-[100%] overflow-auto px-[1rem] py-[1rem]">
-            <div className="flex justify-start items-center gap-[10px]">
-              {[1, 2, 3, 4].map((_, idx) => (
-                <Skeleton
-                  key={idx}
-                  className="font-[poppins] w-[5rem] h-[1.5rem] rounded-[10px] px-[1rem]"
-                  style={{ boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px" }}
-                />
-              ))}
-            </div>
-            <div className="w-full overflow-x-auto hide-scrollbar px-[3px] py-[1rem]">
-              <div className="flex flex-col gap-[1rem]">
-                {[1, 2].map((_, idx) => (
-                  <Skeleton
-                    key={idx}
-                    className="min-w-[200px] rounded-[10px]"
-                    height="140px"
-                    style={{ boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px" }}
-                  />
-                ))}
+            {loading ? (
+              <div>
+                {loading && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      padding: "2rem",
+                      height:"100%"
+                    }}
+                  >
+                    <Lottie animationData={Boy} loop={true} />
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-[#fff] w-[100%] overflow-auto px-[1rem] py-[1rem]">
-            {/* <div className="flex justify-start items-center gap-[10px] overflow-x-auto hide-scrollbar">
-              {groundtypes?.map((element: any) => (
-                <div
-                  key={element.refSportsCategoryId}
-                  className={`text-[#242424] font-[poppins] text-[0.8rem] font-[600] bg-[${
-                    element.refSportsCategoryId === selectedDetails
-                      ? "#a9d6ff"
-                      : "#fff"
-                  }] rounded-[10px] px-[1rem]`}
-                  onClick={() => {
-                    setSelectedDetails(element.refSportsCategoryId);
-                    fetchData(element.refSportsCategoryId);
-                  }}
-                  style={{ border: "1.5px solid #0377de" }}
-                >
-                  {element.refSportsCategoryName}
-                </div>
-              ))}
-            </div> */}
-
-            <div className="w-full overflow-x-auto hide-scrollbar px-[3px] py-[1rem]">
+            ) : (
               <div className="flex flex-col gap-[1rem]">
                 {groundDetails.map((element: any, id) => (
                   <div
@@ -268,69 +280,125 @@ const HomeScreen = () => {
                     className="min-w-[200px] bg-[#f7f7f7] rounded-[10px]"
                     style={{ boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px" }}
                   >
-                    <div>
-                      <img
-                        onClick={() => {
+                    <img
+                      onClick={() =>
+                        history.push(
+                          `/groundDescriptions?groundId=${element.refGroundId}&booknowStatus=false`
+                        )
+                      }
+                      src={
+                        element.refGroundImage
+                          ? `data:${element.refGroundImage.contentType};base64,${element.refGroundImage.content}`
+                          : Logo
+                      }
+                      style={{ width: "100%", height: "130px" }}
+                      className="rounded-tr-[10px] rounded-tl-[10px] object-cover"
+                      alt={element.refGroundId}
+                    />
+                    <div className="flex justify-between items-center px-[0.5rem] gap-[0.5rem] pb-[0.1rem]">
+                      <div
+                        onClick={() =>
                           history.push(
                             `/groundDescriptions?groundId=${element.refGroundId}&booknowStatus=false`
-                          );
-                        }}
-                        src={
-                          element.refGroundImage
-                            ? `data:${element.refGroundImage.contentType};base64,${element.refGroundImage.content}`
-                            : Logo
+                          )
                         }
-                        style={{ width: "100%", height: "130px" }}
-                        className="rounded-tr-[10px] rounded-tl-[10px] object-cover"
-                        alt={element.refGroundId}
-                      />
-                      <div className="flex justify-between items-center px-[0.5rem] gap-[0.5rem] pb-[0.1rem]">
-                        <div
-                          onClick={() => {
-                            history.push(
-                              `/groundDescriptions?groundId=${element.refGroundId}&booknowStatus=false`
-                            );
-                          }}
-                          className="py-[0.1rem] w-[68%]"
-                        >
-                          <div
-                            className="text-[#3c3c3c] text-[0.8rem] font-[600] font-[poppins]"
-                            style={{
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {element.refGroundName}
-                          </div>
-                          <div
-                            className="text-[#3c3c3c] text-[0.7rem] font-[500] my-[0.1rem] font-[poppins]"
-                            style={{
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {element.refGroundLocation},{" "}
-                            {element.refGroundState}, {element.refGroundPincode}
-                          </div>
+                        className="py-[0.1rem] w-[68%]"
+                      >
+                        <div className="text-[#3c3c3c] text-[0.8rem] font-[600] font-[poppins] overflow-hidden text-ellipsis whitespace-nowrap">
+                          {element.refGroundName}
                         </div>
-                        <IonButton
-                          onClick={() => {
-                            history.push(
-                              `/groundDescriptions?groundId=${element.refGroundId}&booknowStatus=true`
-                            );
-                          }}
-                          className="custom-ion-button font-[poppins] w-[5rem] text-[#fff] text-[0.6rem] font-[500]"
-                        >
-                          Book Now
-                        </IonButton>
+                        <div className="text-[#3c3c3c] text-[0.7rem] font-[500] my-[0.1rem] font-[poppins] overflow-hidden text-ellipsis whitespace-nowrap">
+                          {element.refGroundLocation}, {element.refGroundState},{" "}
+                          {element.refGroundPincode}
+                        </div>
                       </div>
+                      <IonButton
+                        onClick={() =>
+                          history.push(
+                            `/groundDescriptions?groundId=${element.refGroundId}&booknowStatus=true`
+                          )
+                        }
+                        className="custom-ion-button font-[poppins] w-[5rem] text-[#fff] text-[0.6rem] font-[500]"
+                      >
+                        Book Now
+                      </IonButton>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
+          </div>
+        )}
+
+        {/* --------- DASHBOARD VIEW --------- */}
+        {(roleID === "3" || roleID === "4") && (
+          <div className="bg-[#fff] w-[100%] overflow-auto px-[1rem] py-[1rem]">
+            {loading ? (
+              <div>
+                {loading && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      padding: "2rem",
+                    }}
+                  >
+                    <Lottie animationData={LoadingFile} loop={true} />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-[1rem]">
+                <div
+                  className="min-w-[200px] bg-[#f7f7f7] rounded-[10px]"
+                  style={{ boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px" }}
+                >
+                  {dashboard && (
+                    <div className="w-full p-[1rem] bg-white rounded-[10px] shadow-md">
+                      <h2 className="text-lg font-semibold text-[#0377de] mb-[1rem]">
+                        Hello {dashboard.refOwnerFname}, here is your onboarding
+                        progress
+                      </h2>
+
+                      <div className="flex text-[#000] flex-col gap-[1rem]">
+                        {[
+                          "DRAFT",
+                          "PENDING",
+                          "UNDER_REVIEW",
+                          "REJECTED",
+                          "APPROVED",
+                          "ONBOARDED",
+                          "SUSPENDED",
+                        ].map((status, index) => {
+                          const isCurrent = dashboard.refStatus === status;
+                          return (
+                            <div
+                              key={index}
+                              className="flex items-center gap-[0.75rem]"
+                            >
+                              <div
+                                className={`w-[20px] h-[20px] rounded-full ${
+                                  isCurrent ? "bg-[#22c55e]" : "bg-[#6b7280]"
+                                }`}
+                              ></div>
+                              <span
+                                className={`text-[20px] font-bold ${
+                                  isCurrent
+                                    ? "text-[#22c55e] font-semibold"
+                                    : "text-[#64748b]"
+                                }`}
+                              >
+                                {status}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </IonContent>

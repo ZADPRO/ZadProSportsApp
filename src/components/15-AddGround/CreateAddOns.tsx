@@ -135,7 +135,7 @@ const CreateAddOns: React.FC<CreateAddOnsProps> = ({
       validateForm();
       const addonString = JSON.stringify(form); // Convert object to string
       console.log(addonString);
-      onSave(addonString); // Send it back as a string
+      // onSave(addonString); // Send it back as a string
     } catch (error: any) {
       console.error(error.message); // Display error message
     }

@@ -8,10 +8,16 @@ import { Column } from "primereact/column";
 import { Toast } from "primereact/toast";
 import { Trash2, Check, X } from "lucide-react";
 import { HiPencil } from "react-icons/hi";
+import { addCircleOutline } from "ionicons/icons";
 import {
   IonBackButton,
   IonButton,
   IonButtons,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardSubtitle,
+  IonCardTitle,
   IonContent,
   IonHeader,
   IonPage,
@@ -112,7 +118,7 @@ const SportCategory: React.FC = () => {
           refSportsCategoryName: addSportCategory.trim(),
         },
         {
-           headers: {
+          headers: {
             Authorization: localStorage.getItem("token"),
             "Content-Type": "application/json",
           },
@@ -250,7 +256,7 @@ const SportCategory: React.FC = () => {
           refSportsCategoryName: editValue.trim(),
         },
         {
-           headers: {
+          headers: {
             Authorization: localStorage.getItem("token"),
             "Content-Type": "application/json",
           },
@@ -356,40 +362,40 @@ const SportCategory: React.FC = () => {
       editingId === rowData.refSportsCategoryId
     );
 
-    if (editingId === rowData.refSportsCategoryId) {
-      return (
-        <div className="flex gap-2">
-          <Button
-            icon={<Check size={16} />}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log("Save button clicked");
-              saveEdit();
-            }}
-            className="p-button-success p-button-sm p-button-rounded"
-            tooltip="Save"
-            size="small"
-          />
-          <Button
-            icon={<X size={16} />}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log("Cancel button clicked");
-              cancelEdit();
-            }}
-            className="p-button-secondary p-button-sm p-button-rounded"
-            tooltip="Cancel"
-            size="small"
-          />
-        </div>
-      );
-    }
+    // if (editingId === rowData.refSportsCategoryId) {
+    //   return (
+    //     <div className="flex gap-2">
+    //       <Button
+    //         icon={<Check size={16} />}
+    //         onClick={(e) => {
+    //           e.preventDefault();
+    //           e.stopPropagation();
+    //           console.log("Save button clicked");
+    //           saveEdit();
+    //         }}
+    //         className="p-button-success p-button-sm p-button-rounded"
+    //         tooltip="Save"
+    //         size="small"
+    //       />
+    //       <Button
+    //         icon={<X size={16} />}
+    //         onClick={(e) => {
+    //           e.preventDefault();
+    //           e.stopPropagation();
+    //           console.log("Cancel button clicked");
+    //           cancelEdit();
+    //         }}
+    //         className="p-button-secondary p-button-sm p-button-rounded"
+    //         tooltip="Cancel"
+    //         size="small"
+    //       />
+    //     </div>
+    //   );
+    // }
 
     return (
       <div className="flex gap-2">
-        <Button
+        {/* <Button
           icon={<HiPencil size={16} />}
           onClick={(e) => {
             e.preventDefault();
@@ -404,7 +410,7 @@ const SportCategory: React.FC = () => {
           className="p-button-warning p-button-sm p-button-rounded"
           tooltip="Edit"
           size="small"
-        />
+        /> */}
         <Button
           icon={<Trash2 size={16} />}
           onClick={(e) => {
@@ -431,59 +437,76 @@ const SportCategory: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonButtons slot="start">
-            <IonBackButton
-              defaultHref="/groundsettings"
-              mode="md"
-            ></IonBackButton>
+            <IonBackButton defaultHref="/groundsettings" mode="md" />
           </IonButtons>
-          <IonTitle>Add Extra Features </IonTitle>
+          <IonTitle>Add Sports Category</IonTitle>
         </IonToolbar>
       </IonHeader>
-      <IonContent>
-        <div className="overallcontainer flex">
-          <div className="mt-[0.8rem] p-3">
-            <label className="text-[#000]">Sport Name:</label>
-            <div className="flex justify-between w-[60%]">
-              <InputText
-                id="sportname"
-                className="h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
+
+      <IonContent className="ion-padding bg-[#f7f7f7] min-h-screen">
+        <div className="max-w-3xl mx-auto mt-4 space-y-6">
+          {/* Input Label & Field */}
+          <div className="w-full max-w-2xl mx-auto">
+            <IonLabel
+              className="block text-[#000] font-semibold text-[15px]"
+              style={{ paddingBottom: "10px" }}
+            >
+              Sport Name:
+            </IonLabel>
+
+            <div className="flex flex-col items-center gap-3 w-full"  style={{ gap: "10px" }}>
+              <IonInput
+              
+                className="w-full h-[2.7rem] px-4 text-[#000] border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Enter Sport Name"
                 value={addSportCategory}
-                onChange={(e) => setAddSportCategory(e.target.value)}
+                onIonChange={(e) => setAddSportCategory(e.detail.value!)}
                 onKeyDown={(e) => e.key === "Enter" && addSportApi()}
               />
-              <Button label="Add" className="" onClick={addSportApi} />
-            </div>
 
-            <div className="w-[100%] mt-5" style={{ marginTop: "30px" }}>
-              {/* Debug info */}
-
-              <DataTable
-                // cellMemo={false}
-                scrollable
-                showGridlines
-                stripedRows
-                value={getListSportCategory}
-              >
-                <Column
-                  field="sno"
-                  header="S.No"
-                  body={(_, { rowIndex }) => rowIndex + 1}
-                  style={{ minWidth: "4rem" }}
-                />
-                <Column
-                  field="refSportsCategoryName"
-                  header="Sport Name"
-                  body={renderSportName}
-                  style={{ minWidth: "14rem" }}
-                />
-                <Column
-                  header="Actions"
-                  body={renderActions}
-                  style={{ minWidth: "12rem" }}
-                />
-              </DataTable>
+              <Button
+                label="Add"
+                className="p-button-primary p-button-sm min-w-[80px] mt-3"
+                onClick={addSportApi}
+              />
             </div>
+          </div>
+
+          {/* Sport List */}
+          <div>
+            {getListSportCategory?.length > 0 ? (
+              getListSportCategory.map(
+                (item: SportCategoryResult, index: number) => (
+                  <IonCard
+                    key={item.refSportsCategoryId}
+                    className="w-full"
+                    style={{
+                      "--background": "#fff",
+                      color: "#000",
+                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+                    }}
+                  >
+                    <IonCardHeader>
+                      <div className="flex justify-between items-center">
+                        <IonCardTitle className="text-[#000] m-0">
+                          Sport #{index + 1}
+                        </IonCardTitle>
+                        <Button
+                          icon="pi pi-trash"
+                          className="p-button-sm text-[#fff] p-button-text"
+                          onClick={() => deleteSport(item)}
+                        />
+                      </div>
+                      <IonCardSubtitle className="mt-2">
+                        {item.refSportsCategoryName}
+                      </IonCardSubtitle>
+                    </IonCardHeader>
+                  </IonCard>
+                )
+              )
+            ) : (
+              <IonText color="medium">No sports found.</IonText>
+            )}
           </div>
         </div>
       </IonContent>

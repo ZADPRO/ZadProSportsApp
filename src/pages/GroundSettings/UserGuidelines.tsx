@@ -14,6 +14,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonItem,
   IonPage,
   IonSegment,
   IonSegmentButton,
@@ -247,7 +248,7 @@ const UserGuidelines: React.FC = () => {
 
   const actionTemplate = (rowData: UserGuideline) => (
     <div className="flex gap-2">
-      {editActivityId === rowData.refUserGuidelinesId ? (
+      {/* {editActivityId === rowData.refUserGuidelinesId ? (
         <Button
           label="Update"
           icon="pi pi-check"
@@ -260,7 +261,7 @@ const UserGuidelines: React.FC = () => {
           className="p-button-warning p-button-sm"
           onClick={() => handleEditActivityClick(rowData)}
         />
-      )}
+      )} */}
       <Button
         icon="pi pi-trash"
         className="p-button-danger p-button-sm"
@@ -282,25 +283,41 @@ const UserGuidelines: React.FC = () => {
               mode="md"
             ></IonBackButton>
           </IonButtons>
-          <IonTitle>Add Extra Features </IonTitle>
+          <IonTitle>Add Guildelines </IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <div className="overallcontainer flex">
+        <div>
           <div className="mt-[0.8rem] px-[1rem] w-[100%]">
             <label className="text-[#000]"> User Guideline:</label>
-            <div className="flex justify-between w-[100%] mb-6">
+            <IonItem
+              style={{ "--background": "#fff", color: "#000" }}
+              lines="none"
+              className="mb-5 w-full"
+            >
+              {" "}
               <InputText
                 id="featureInputs"
                 className="h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
-                placeholder="Enter Feature Name"
+                placeholder="Enter Guildeline Name"
                 value={newGuideline}
                 onChange={(e) => setNewGuideline(e.target.value)}
               />
+            </IonItem>
+            <IonItem
+              style={{
+                "--background": "#fff",
+                color: "#000",
+                paddingTop: "1rem",
+                with: "30%",
+              }}
+              lines="none"
+              className="flex flex-row flex-end mb-6 "
+            >
               <Button label="Add" className="" onClick={addGuidelineApi} />
-            </div>
+            </IonItem>
 
-            <div className="w-[90%] mt-5" style={{ marginTop: "30px" }}>
+            <div className="w-[100%] mt-5" style={{ marginTop: "30px" }}>
               {/* Debug info */}
 
               <DataTable

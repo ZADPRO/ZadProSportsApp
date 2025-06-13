@@ -1,4 +1,5 @@
 import {
+  IonAlert,
   IonBackButton,
   IonButton,
   IonButtons,
@@ -16,6 +17,7 @@ import {
   IonText,
   IonTextarea,
 } from "@ionic/react";
+import { Button } from "primereact/button";
 import { IonToggle } from "@ionic/react";
 import logo from "../../assets/images/Logo.png";
 import { InputText } from "primereact/inputtext";
@@ -31,6 +33,8 @@ import { IonItem, IonList, IonPopover } from "@ionic/react";
 import { FileUpload } from "primereact/fileupload";
 import { RadioButton } from "primereact/radiobutton";
 import { InputSwitch, InputSwitchChangeEvent } from "primereact/inputswitch";
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { useIonAlert } from "@ionic/react";
 
 interface SportCategory {
   refSportsCategoryId: number;
@@ -73,8 +77,11 @@ interface GroundSport {
 }
 
 import { MultiSelect } from "primereact/multiselect";
+import CameraImage from "../../pages/CameraCapture/CameraImage";
 const OwnerSignup = () => {
-  const [groundImage, setGroundImage] = useState("");
+  const [groundImage, setGroundImage] = useState<string | undefined>();
+  const [showConfirmUpload, setShowConfirmUpload] = useState(false);
+  const [pendingCameraFile, setPendingCameraFile] = useState<File | null>(null);
   const [isUploaded, setIsUploaded] = useState(false);
   const [selectedCategoryType, setSelectedCategoryType] = useState<
     SportCategory[]
@@ -86,9 +93,13 @@ const OwnerSignup = () => {
   const [addressOption, setAddressOption] = useState<"default" | "category">(
     "default"
   );
+  const [presentAlert] = useIonAlert();
+
   const [document1, setDocument1] = useState("");
   const [document2, setDocument2] = useState("");
   const history = useHistory();
+
+  const [value, setValue] = useState<string>();
 
   const toast = useRef(null);
   const [inputs, setInputs] = useState<OwnerInputState>({
@@ -158,7 +169,6 @@ const OwnerSignup = () => {
 
   const AddOwner = async () => {
     try {
-      // Set isDefaultAddress based on addressOption
       const isDefaultAddress = addressOption === "default";
 
       let payload: any = {
@@ -183,18 +193,13 @@ const OwnerSignup = () => {
         refDocument2Path: document2,
       };
 
-      // Set common ground address if default
       if (isDefaultAddress) {
         payload.groundAddress = inputs.groundAddress;
       }
 
-      // Generate ground sports array
       const refGroundSports: any[] = selectedCategoryType.map((category) => {
         const sportId = category.refSportsCategoryId;
-
-        const groundSport: any = {
-          id: sportId,
-        };
+        const groundSport: any = { id: sportId };
 
         if (!isDefaultAddress) {
           groundSport.groundAddress = categoryAddresses[sportId] || "";
@@ -204,8 +209,6 @@ const OwnerSignup = () => {
       });
 
       payload.refGroundSports = refGroundSports;
-
-      console.log("Payload to send:", payload);
 
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/v1/ownerRoutes/addOwners`,
@@ -226,11 +229,23 @@ const OwnerSignup = () => {
 
       console.log("data---------->Owner", data);
 
-      if (data.success) {
-        localStorage.setItem("token", data.token);
+     
+      await presentAlert({
+        header: "Info",
+        message: data.message || "Something went wrong.",
+        buttons: ["OK"],
+      });
+
+      if (data.success || data.message === "Email Already exists") {
+        history.push("/login");
       }
     } catch (e) {
       console.log("Error adding Owner:", e);
+      await presentAlert({
+        header: "Error",
+        message: "Something went wrong while adding owner.",
+        buttons: ["OK"],
+      });
     }
   };
 
@@ -253,7 +268,7 @@ const OwnerSignup = () => {
         {
           headers: {
             Authorization: localStorage.getItem("token"),
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -381,7 +396,7 @@ const OwnerSignup = () => {
           {
             headers: {
               Authorization: localStorage.getItem("token"),
-              "Content-Type": "application/json",
+              "Content-Type": "multipart/form-data",
             },
           }
         );
@@ -406,7 +421,7 @@ const OwnerSignup = () => {
   const handlepassportUploadSuccess1 = (response: any) => {
     // let temp = [...document1]; // Create a new array to avoid mutation
     // temp.push(response.filePath); // Add the new file path
-    // console.log("Upload Successful:", response);
+    console.log("Upload Successful:", response);
     setDocument1(response.filePath); // Update the state with the new array
   };
 
@@ -434,7 +449,7 @@ const OwnerSignup = () => {
           {
             headers: {
               Authorization: localStorage.getItem("token"),
-              // "Content-Type": "application/json",
+              "Content-Type": "multipart/form-data",
             },
           }
         );
@@ -466,6 +481,86 @@ const OwnerSignup = () => {
   const handlepassportUploadFailure2 = (error: any) => {
     console.error("Upload Failed:", error);
     // Add your failure handling logic here
+  };
+
+  //update
+
+  const UpdateOwner = async () => {
+    try {
+      // Set isDefaultAddress based on addressOption
+      const isDefaultAddress = addressOption === "default";
+
+      let payload: any = {
+        refOwnerFname: inputs.refOwnerFname,
+        refOwnerLname: inputs.refOwnerLname,
+        refEmailId: inputs.refEmailId,
+        refMobileId: inputs.refMobileId,
+        refCustPassword: inputs.refCustPassword,
+        refAadharId: inputs.refAadharId,
+        refPANId: inputs.refPANId,
+        refGSTnumber: inputs.refGSTnumber,
+        isDefaultAddress: isDefaultAddress,
+        isOwnGround: isGroundOwner,
+        refGroundImage: groundImage,
+        refGroundDescription: inputs.refGroundDescription,
+        refBankName: inputs.refBankName,
+        refBankBranch: inputs.refBankBranch,
+        refAcHolderName: inputs.refAcHolderName,
+        refAccountNumber: inputs.refAccountNumber,
+        refIFSCcode: inputs.refIFSCcode,
+        refDocument1Path: document1,
+        refDocument2Path: document2,
+      };
+
+      // Set common ground address if default
+      if (isDefaultAddress) {
+        payload.groundAddress = inputs.groundAddress;
+      }
+
+      // Generate ground sports array
+      const refGroundSports: any[] = selectedCategoryType.map((category) => {
+        const sportId = category.refSportsCategoryId;
+
+        const groundSport: any = {
+          id: sportId,
+        };
+
+        if (!isDefaultAddress) {
+          groundSport.groundAddress = categoryAddresses[sportId] || "";
+        }
+
+        return groundSport;
+      });
+
+      payload.refGroundSports = refGroundSports;
+
+      console.log("Payload to send:", payload);
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/v1/ownerRoutes/updateOwners`,
+        payload,
+        {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = decrypt(
+        response.data[1],
+        response.data[0],
+        import.meta.env.VITE_ENCRYPTION_KEY
+      );
+
+      console.log("data---------->Owner", data);
+
+      if (data.success) {
+        localStorage.setItem("token", data.token);
+      }
+    } catch (e) {
+      console.log("Error adding Owner:", e);
+    }
   };
 
   return (
@@ -706,14 +801,97 @@ const OwnerSignup = () => {
               />
             </div>
 
-            <IonItem
-              lines="none"
-              style={{ "--background": "#fff", color: "#000" }}
-              className="ion-margin-top ion-padding-start"
-            >
-              <IonLabel className="ion-text-wrap">Upload Ground Image</IonLabel>
-            </IonItem>
+            <div>
+              <div className="ion-margin-top ion-padding-start">
+                <IonText color="primary" className="ion-padding-top">
+                  Take a Photo from Camera or choose from Gallery
+                </IonText>
+              </div>
 
+              <IonItem
+                lines="none"
+                style={{
+                  "--background": "#fff",
+                  color: "#000",
+                  borderRadius: "12px",
+                  boxShadow: "0 2px 10px rgba(0, 0, 0, 0.05)",
+                }}
+                className="ion-margin-top ion-padding-horizontal"
+              >
+                <div>
+                  <span>
+                    <Button
+                      icon="pi pi-camera"
+                      className="buttonIconGroupStart"
+                      onClick={async () => {
+                        try {
+                          const image = await Camera.getPhoto({
+                            quality: 90,
+                            allowEditing: false,
+                            resultType: CameraResultType.Uri,
+                            source: CameraSource.Camera,
+                          });
+
+                          if (image.webPath) {
+                            const blob = await fetch(image.webPath).then((r) =>
+                              r.blob()
+                            );
+                            const file = new File(
+                              [blob],
+                              "captured_image.jpg",
+                              { type: blob.type }
+                            );
+
+                            setPendingCameraFile(file);
+                            setShowConfirmUpload(true); // Show confirmation popup
+                          }
+                        } catch (error) {
+                          console.error("Camera error:", error);
+                        }
+                      }}
+                    />
+                  </span>
+                  <span> Take Photo</span>
+                </div>
+              </IonItem>
+
+              <IonItem
+                lines="none"
+                style={{ "--background": "#fff", color: "#000" }}
+                className="ion-margin-top ion-padding-start"
+              >
+                <IonLabel className="ion-text-wrap">
+                  Upload Ground Image
+                </IonLabel>
+              </IonItem>
+
+              {/* Alert for confirmation */}
+              <IonAlert
+                isOpen={showConfirmUpload}
+                onDidDismiss={() => setShowConfirmUpload(false)}
+                header="Upload Confirmation"
+                message="Do you want to upload this photo?"
+                buttons={[
+                  {
+                    text: "Cancel",
+                    role: "cancel",
+                    handler: () => {
+                      setPendingCameraFile(null);
+                    },
+                  },
+                  {
+                    text: "Upload",
+                    handler: () => {
+                      if (pendingCameraFile) {
+                        const event = { files: [pendingCameraFile] };
+                        profile(event);
+                      }
+                      setPendingCameraFile(null);
+                    },
+                  },
+                ]}
+              />
+            </div>
             {/* File Upload */}
             <div className="ion-padding">
               <FileUpload
@@ -908,6 +1086,7 @@ const OwnerSignup = () => {
                 </IonText>
               )}
             </div>
+
             <IonItem
               lines="none"
               style={{ "--background": "#fff", color: "#000" }}

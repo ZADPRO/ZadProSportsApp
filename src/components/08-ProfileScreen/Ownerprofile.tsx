@@ -17,33 +17,24 @@ import {
   IonText,
   IonTextarea,
 } from "@ionic/react";
+import { Browser } from "@capacitor/browser";
 
-import Ground1 from "../../assets/images/Ground1.png";
-import Ground2 from "../../assets/images/Ground2.png";
-import Ground3 from "../../assets/images/Ground3.png";
-import Ground4 from "../../assets/images/Ground4.png";
-import GroundCards from "../../pages/01-GroundCards/GroundCards";
-import NextPageCards from "../../pages/01-GroundCards/NextPageCard";
-import Account from "../../assets/images/Account.png";
-import { IoIosArrowBack } from "react-icons/io";
-
-import { Toast } from "primereact/toast";
 import { IonToggle } from "@ionic/react";
 import logo from "../../assets/images/Logo.png";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { useHistory } from "react-router";
 import { useEffect, useRef, useState } from "react";
-import { Calendar } from "primereact/calendar";
-import { InputNumber } from "primereact/inputnumber";
+
 import { decrypt } from "../../Helper";
 import axios from "axios";
-import { StatusBar, Style } from "@capacitor/status-bar";
+
 import { IonItem, IonList, IonPopover } from "@ionic/react";
 import { FileUpload } from "primereact/fileupload";
 import { RadioButton } from "primereact/radiobutton";
-import { InputSwitch, InputSwitchChangeEvent } from "primereact/inputswitch";
+import { IoIosArrowBack, IoMdCreate } from "react-icons/io";
 import { MultiSelect } from "primereact/multiselect";
+import AddressMap from "../AddressMap";
 
 interface SportCategory {
   refSportsCategoryId: number;
@@ -72,16 +63,26 @@ interface OwnerInputState {
   groundAddress: string;
   refGroundSports: { id: number }[];
 }
+interface GroundImage {
+  content: string; // base64 image data
+  contentType: string; // MIME type, e.g., "image/jpeg"
+  filename: string; // original filename
+}
 
 interface SportCategory {
   refSportsCategoryId: number;
   refSportsCategoryName: string;
 }
 
-const Ownerprofile = () => {
-  const [present] = useIonToast();
+interface Address {
+  groundAddress: string;
+  refSportsCategoryId: number;
+  refSportsCategoryName: string;
+  refOwnerSportsMappingId: number;
+}
 
-  const [groundImage, setGroundImage] = useState("");
+const Ownerprofile = () => {
+  const [groundImage, setGroundImage] = useState<GroundImage | null>(null);
   const [isUploaded, setIsUploaded] = useState(false);
   const [selectedCategoryType, setSelectedCategoryType] = useState<
     SportCategory[]
@@ -93,9 +94,10 @@ const Ownerprofile = () => {
   const [addressOption, setAddressOption] = useState<"default" | "category">(
     "default"
   );
+  const [addressMap, setAddressMap] = useState<Address[]>([]);
 
-  const [document1, setDocument1] = useState<string[]>([]);
-  const [document2, setDocument2] = useState<string[]>([]);
+  const [document1, setDocument1] = useState<GroundImage | null>(null);
+  const [document2, setDocument2] = useState<GroundImage | null>(null);
   const history = useHistory();
 
   const toast = useRef(null);
@@ -123,6 +125,7 @@ const Ownerprofile = () => {
   });
 
   const [isGroundOwner, setIsGroundOwner] = useState<boolean>(false);
+  const [isDefault, setIsDefault] = useState<boolean>(false);
 
   const [error, setError] = useState({
     status: false,
@@ -177,7 +180,7 @@ const Ownerprofile = () => {
         refPANId: newdata.refPANId,
         refGSTnumber: newdata.refGSTnumber,
         isOwnGround: newdata.isOwnGround,
-        refGroundImage: newdata.refGroundImage,
+        refGroundImage: newdata.refGroundImage?.content || "",
         refGroundDescription: newdata.refGroundDescription,
         refBankName: newdata.refBankName,
         refBankBranch: newdata.refBankBranch,
@@ -189,8 +192,13 @@ const Ownerprofile = () => {
         groundAddress: newdata.groundAddress,
         refGroundSports: newdata.ownersportsmappings,
       });
+      setGroundImage(newdata.refGroundImage);
       setIsGroundOwner(Boolean(newdata.isOwnGround));
+      setIsDefault(newdata.isDefaultAddress);
       setSelectedCategoryType(selectedCategoryIds);
+      setDocument1(newdata.refDocument1Path);
+      setDocument2(newdata.refDocument2Path);
+      setAddressMap(newdata.ownersportsmappings);
     }
   };
   const listSportApi = () => {
@@ -224,6 +232,10 @@ const Ownerprofile = () => {
   };
 
   useEffect(() => {
+    console.log({ selectedCategoryType });
+  }, [selectedCategoryType]);
+
+  useEffect(() => {
     setLoading(true);
     listSportApi();
 
@@ -236,9 +248,22 @@ const Ownerprofile = () => {
     setLoading(false);
   }, []);
 
-  const [loading, setLoading] = useState(true);
+  const Document2 = async () => {
+    await Browser.open({
+      url: `data:application/pdf;base64,${document2!.content}`,
+    });
+  };
+  const Document1 = async () => {
+    await Browser.open({
+      url: `data:application/pdf;base64,${document2!.content}`,
+    });
+  };
 
-  const handleSaveProfile = async () => {
+  const [loading, setLoading] = useState(true);
+  const [present] = useIonToast();
+  const [isEditing, setIsEditing] = useState(false);
+
+  const UpdateOwner = async () => {
     try {
       let payload: any = {
         refOwnerFname: inputs.refOwnerFname,
@@ -250,6 +275,7 @@ const Ownerprofile = () => {
         refPANId: inputs.refPANId,
         refGSTnumber: inputs.refGSTnumber,
         isOwnGround: isGroundOwner,
+        isDefaultAddress: isDefault,
         refGroundImage: groundImage,
         refGroundDescription: inputs.refGroundDescription,
         refBankName: inputs.refBankName,
@@ -286,7 +312,7 @@ const Ownerprofile = () => {
       console.log("Payload to send:", payload);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/v1/ownerRoutes/addOwners`,
+        `${import.meta.env.VITE_API_URL}/v1/ownerRoutes/updateOwners`,
         payload,
         {
           headers: {
@@ -338,7 +364,7 @@ const Ownerprofile = () => {
         {
           headers: {
             Authorization: localStorage.getItem("token"),
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -391,7 +417,7 @@ const Ownerprofile = () => {
           {
             headers: {
               Authorization: localStorage.getItem("token"),
-              // "Content-Type": "application/json",
+              "Content-Type": "multipart/form-data",
             },
           }
         );
@@ -414,10 +440,10 @@ const Ownerprofile = () => {
     }
   };
   const handlepassportUploadSuccess1 = (response: any) => {
-    let temp = [...document1]; // Create a new array to avoid mutation
-    temp.push(response.filePath); // Add the new file path
-    console.log("Upload Successful:", response);
-    setDocument1(temp); // Update the state with the new array
+    // let temp = [...document1]; // Create a new array to avoid mutation
+    // temp.push(response.filePath); // Add the new file path
+    // console.log("Upload Successful:", response);
+    setDocument1(response.filePath); // Update the state with the new array
   };
 
   const handlepassportUploadFailure1 = (error: any) => {
@@ -447,7 +473,7 @@ const Ownerprofile = () => {
           {
             headers: {
               Authorization: localStorage.getItem("token"),
-              // "Content-Type": "application/json",
+              "Content-Type": "multipart/form-data",
             },
           }
         );
@@ -470,10 +496,10 @@ const Ownerprofile = () => {
     }
   };
   const handlepassportUploadSuccess2 = (response: any) => {
-    let temp = [...document1]; // Create a new array to avoid mutation
-    temp.push(response.filePath); // Add the new file path
-    console.log("Upload Successful:", response);
-    setDocument1(temp); // Update the state with the new array
+    // let temp = [...document1]; // Create a new array to avoid mutation
+    // temp.push(response.filePath); // Add the new file path
+    // console.log("Upload Successful:", response);
+    setDocument1(response.filePath); // Update the state with the new array
   };
 
   const handlepassportUploadFailure2 = (error: any) => {
@@ -498,10 +524,34 @@ const Ownerprofile = () => {
 
     setCategoryAddresses(freshAddresses);
   };
-  const handleCategoryAddressChange = (categoryId: number, address: string) => {
-    console.log(`Updating address for category ${categoryId}:`, address);
 
-    setCategoryAddresses((prev) => ({ ...prev, [categoryId]: address }));
+  const handleCategoryAddressChange = (
+    refSportsCategoryId: number,
+    isDefaultAddress: boolean,
+    address: string
+  ) => {
+    if (isDefaultAddress) {
+      setAddressMap((prev) => {
+        const newAddress = prev.map((item) => ({
+          ...item,
+          groundAddress: address,
+        }));
+        return newAddress;
+      });
+    } else {
+      setAddressMap((prev) => {
+        const newAddress = prev.map((item) => {
+          if (item.refSportsCategoryId === refSportsCategoryId) {
+            return {
+              ...item,
+              groundAddress: address,
+            };
+          }
+          return item;
+        });
+        return newAddress;
+      });
+    }
   };
 
   return (
@@ -512,6 +562,11 @@ const Ownerprofile = () => {
             <IonBackButton defaultHref="/home" mode="md"></IonBackButton>
           </IonButtons>
           <IonTitle>Profile</IonTitle>
+          <IonButtons slot="end">
+            {/* <IonButton onClick={() => setIsEditing(!isEditing)}>
+              <IoMdCreate style={{ fontSize: "2rem", fontWeight: "bold" }} />
+            </IonButton> */}
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent>
@@ -531,14 +586,17 @@ const Ownerprofile = () => {
               <form
                 onSubmit={(e: any) => {
                   e.preventDefault();
-                  handleSaveProfile();
+                  if (isEditing) {
+                    UpdateOwner();
+                    setIsEditing(false);
+                  }
                 }}
               >
-                <div className="cardDesign font-[poppins]">
-                  <div className="w-[100%] flex justify-center items-center mt-[20px]">
+                <div className="cardDesign font-[poppins] ">
+                  {/* <div className="w-[100%] flex justify-center items-center mt-[20px]">
                     <img
                       src={logo}
-                      style={{ width: "70%" }}
+                      style={{ width: "30%" }}
                       alt="Sports Logo"
                       className="logo"
                     />
@@ -546,10 +604,10 @@ const Ownerprofile = () => {
 
                   <div className="text-[1.5rem] font-[600] text-center mt-[0rem]">
                     Register Account
-                  </div>
+                  </div> */}
 
                   {/* First Name */}
-                  <div className="mt-[0.8rem] px-[1rem]">
+                  <div className="mt-[1rem] px-[1rem]">
                     <label className="text-[#000]">First Name</label>
                     <InputText
                       name="refOwnerFname"
@@ -558,6 +616,7 @@ const Ownerprofile = () => {
                       placeholder="Enter First Name"
                       className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                       required
+                      disabled={!isEditing}
                     />
                   </div>
 
@@ -571,6 +630,7 @@ const Ownerprofile = () => {
                       placeholder="Enter Last Name"
                       className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                       required
+                      disabled={!isEditing}
                     />
                   </div>
 
@@ -584,6 +644,7 @@ const Ownerprofile = () => {
                       placeholder="Enter Mobile Number"
                       className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                       required
+                      disabled={!isEditing}
                     />
                   </div>
 
@@ -598,6 +659,7 @@ const Ownerprofile = () => {
                       placeholder="Enter Email"
                       className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                       required
+                      disabled={!isEditing}
                     />
                   </div>
 
@@ -613,6 +675,7 @@ const Ownerprofile = () => {
                       placeholder="Enter Password"
                       className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                       required
+                      disabled={!isEditing}
                     />
                   </div>
                 </div>
@@ -626,6 +689,7 @@ const Ownerprofile = () => {
                     placeholder="Aadhar Card Number"
                     className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                     required
+                    disabled={!isEditing}
                   />
                 </div>
                 {/* PAn */}
@@ -638,6 +702,7 @@ const Ownerprofile = () => {
                     placeholder="Pan Card Number"
                     className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                     required
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="mt-[1rem] px-[1rem] ">
@@ -656,6 +721,7 @@ const Ownerprofile = () => {
                     placeholder="Enter Bank Name"
                     className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                     required
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="mt-[0.8rem] px-[1rem]">
@@ -667,6 +733,7 @@ const Ownerprofile = () => {
                     placeholder="Enter Bank Name"
                     className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                     required
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="mt-[0.8rem] px-[1rem]">
@@ -678,6 +745,7 @@ const Ownerprofile = () => {
                     placeholder="Enter Bank Name"
                     className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                     required
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="mt-[0.8rem] px-[1rem]">
@@ -689,6 +757,7 @@ const Ownerprofile = () => {
                     placeholder="Enter Bank Name"
                     className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                     required
+                    disabled={!isEditing}
                   />
                 </div>
 
@@ -701,6 +770,7 @@ const Ownerprofile = () => {
                     placeholder="Enter Bank Name"
                     className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                     required
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="mt-[2rem] px-[1rem] flex flex-row justify-around items-center w-[100%]">
@@ -737,6 +807,18 @@ const Ownerprofile = () => {
                     Upload Ground Image
                   </IonLabel>
                 </IonItem>
+
+                <div style={{ background: "#fff", paddingLeft: "5rem" }}>
+                  {groundImage && (
+                    <div className="mt-4">
+                      <img
+                        src={`data:${groundImage.contentType};base64,${groundImage.content}`}
+                        alt={groundImage.filename || "Preview"}
+                        className="w-[50%] h-auto object-cover rounded-lg border border-gray-300 shadow-sm "
+                      />
+                    </div>
+                  )}
+                </div>
 
                 {/* File Upload */}
                 <div className="ion-padding">
@@ -808,8 +890,8 @@ const Ownerprofile = () => {
                     inputId="default"
                     name="addressOption"
                     value="default"
-                    onChange={(e) => setAddressOption(e.value)}
-                    checked={addressOption === "default"}
+                    onChange={(e) => setIsGroundOwner(true)}
+                    checked={isDefault === true}
                   />
                   <label htmlFor="default" style={{ marginLeft: "8px" }}>
                     Use Default Address for All Sports
@@ -830,8 +912,8 @@ const Ownerprofile = () => {
                     inputId="category"
                     name="addressOption"
                     value="category"
-                    onChange={(e) => setAddressOption(e.value)}
-                    checked={addressOption === "category"}
+                    onChange={(e) => setIsGroundOwner(false)}
+                    checked={isDefault === false}
                   />
                   <label htmlFor="category" style={{ marginLeft: "8px" }}>
                     Different Address for Each Sport
@@ -839,7 +921,7 @@ const Ownerprofile = () => {
                 </div>
 
                 {/* Address Input */}
-                {addressOption === "default" ? (
+                {/* {isDefault ? (
                   <IonItem
                     style={{ "--background": "#fff", color: "#000" }}
                     className="ion-margin-top"
@@ -895,7 +977,14 @@ const Ownerprofile = () => {
                       ))
                     )}
                   </div>
-                )}
+                )} */}
+
+                <AddressMap
+                  addresses={addressMap}
+                  isDefaultAddress={isDefault}
+                  selectedCategoryLength={selectedCategoryType.length}
+                  handleChange={handleCategoryAddressChange}
+                />
 
                 <IonItem
                   lines="none"
@@ -906,6 +995,25 @@ const Ownerprofile = () => {
                     Upload Original Document
                   </IonLabel>
                 </IonItem>
+                {/* <div style={{ background: "#fff", paddingLeft: "5rem" }}>
+                  {document1 && (
+                    <div className="mt-4">
+                      <img
+                        src={`data:${document1.contentType};base64,${document1.content}`}
+                        alt={document1.filename || "Preview"}
+                        className="w-[50%] h-auto object-cover rounded-lg border border-gray-300 shadow-sm "
+                      />
+                    </div>
+                  )}
+                </div> */}
+                <div className="flex justify-center items-center w-[100%]">
+                  <IonButton
+                    className="flex justify-center items-center w-[30%] "
+                    onClick={Document1}
+                  >
+                    View PDF
+                  </IonButton>
+                </div>
 
                 {/* File Upload */}
                 <div className="ion-padding">
@@ -934,7 +1042,25 @@ const Ownerprofile = () => {
                     Upload Original Document
                   </IonLabel>
                 </IonItem>
-
+                {/* {document2 && document2.contentType === "application/pdf" && (
+                  <div className="mt-4">
+                    <iframe
+                      src={`data:application/pdf;base64,${document2.content}`}
+                      title="PDF Preview"
+                      width="100%"
+                      height="300px"
+                      style={{ border: "none" }}
+                    ></iframe>
+                  </div>
+                )} */}
+                <div className="flex justify-center items-center w-[100%]">
+                  <IonButton
+                    className="flex justify-center items-center w-[30%] "
+                    onClick={Document2}
+                  >
+                    View PDF
+                  </IonButton>
+                </div>
                 {/* File Upload */}
                 <div className="ion-padding">
                   <FileUpload
@@ -974,8 +1100,10 @@ const Ownerprofile = () => {
                         className="pi pi-spin pi-spinner"
                         style={{ fontSize: "1rem" }}
                       ></i>
+                    ) : isEditing ? (
+                      "Save"
                     ) : (
-                      "Register"
+                      "Save"
                     )}
                   </IonButton>
                 </div>

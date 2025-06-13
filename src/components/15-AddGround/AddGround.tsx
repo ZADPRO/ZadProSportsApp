@@ -4,10 +4,13 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonItem,
+  IonList,
   IonPage,
   IonSegment,
   IonSegmentButton,
   IonTitle,
+  IonToggle,
   IonToolbar,
   useIonToast,
 } from "@ionic/react";
@@ -39,6 +42,24 @@ import {
 } from "../ground/GroundUtlis";
 import CreateAddOns from "./CreateAddOns";
 import GroundSettings from "./GroundSettings";
+import CameraImage from "../../pages/CameraCapture/CameraImage";
+
+interface CreateAddOnsProps {
+  selectedAddon: string | null; // Or full AddOnForm if needed
+  onSave: (addon: string) => void;
+}
+
+interface NestedSubcategory {
+  name: string;
+  price: number | null;
+}
+
+interface Subcategory {
+  name: string;
+  price?: number | null;
+  isItemsAvailable: boolean;
+  refItems?: NestedSubcategory[];
+}
 
 interface GroundImage {
   content: string; // base64 image data
@@ -46,13 +67,12 @@ interface GroundImage {
   filename: string; // original filename
 }
 
-export interface AddOnForm {
+interface AddOnForm {
   name: string;
   isSubaddonsAvailable: boolean;
   price?: number | null;
-  refSubAddOns?: object[];
+  refSubAddOns?: Subcategory[];
 }
-
 export interface GroundAdd {
   refGroundName: string;
   isAddOnAvailable: boolean;
@@ -74,7 +94,7 @@ export interface GroundAdd {
   refStatus: boolean;
 }
 
-const Ownerprofile = () => {
+const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState({
     status: false,
@@ -284,11 +304,11 @@ const Ownerprofile = () => {
 
       if (response.success) {
         console.log("data+", response);
-        setGroundImg(response.files[0]);
-        setGroundDetails((prev) => ({
-          ...prev!,
-          refGroundImage: response.filePath,
-        }));
+        // setGroundImg(response.files[0]);
+        // setGroundDetails((prev) => ({
+        //   ...prev!,
+        //   refGroundImage: response.filePath,
+        // }));
         handleUploadSuccessMap(response);
       } else {
         console.log("data-", response);
@@ -301,9 +321,9 @@ const Ownerprofile = () => {
 
   const handleUploadSuccessMap = (response: any) => {
     console.log("Upload Successful:", response);
-    setFormdataImages(response.filePath);
+    setGroundImg(response.filePath);
   };
-  console.log(formDataImages);
+  console.log("formdata------>", formDataImages);
 
   const handleUploadFailure = (error: any) => {
     console.error("Upload Failed:", error);
@@ -312,61 +332,255 @@ const Ownerprofile = () => {
 
   console.log(groundDetails);
 
-  const handleCreateNewGround = async () => {
-    const {
-      refGroundName,
-      refGroundPrice,
-      refTournamentPrice,
-      refGroundLocation,
-      refGroundState,
-      refGroundPincode,
-      refDescription,
-      IframeLink,
-      groundLocationLink,
-      refFeaturesId,
-      refSportsCategoryId,
-      refUserGuidelinesId,
-      refFacilitiesId,
-      refAdditionalTipsId,
-    } = groundDetails;
+  // const handleCreateNewGround = async () => {
+  //   await handleSubmit();
+  //   const { isAddOnAvailable } = groundDetails;
 
-    // Manual validation
-    if (
-      !refGroundName?.trim() ||
-      !refGroundPrice?.trim() ||
-      !refTournamentPrice?.trim() ||
-      !refGroundLocation?.trim() ||
-      !refGroundState?.trim() ||
-      !refGroundPincode?.trim() ||
-      !refDescription?.trim() ||
-      !IframeLink?.trim() ||
-      !groundLocationLink?.trim() ||
-      !refFeaturesId?.length ||
-      !refSportsCategoryId?.length ||
-      !refUserGuidelinesId?.length ||
-      !refFacilitiesId?.length ||
-      !refAdditionalTipsId?.length ||
-      !groundImg // Optional: Ensure image is uploaded
-    ) {
-      alert("Please fill in all fields before submitting.");
-      return;
-    }
+  //   try {
+  //     // If AddOn is available, validate the form
+  //     if (isAddOnAvailable) {
+  //       validateForm(); // <- Call your AddOn form validation function
+  //     }
+
+  //     // Log the groundDetails to check refAddOns
+  //     console.log("Ground Details before API call:", groundDetails);
+
+  //     // Proceed with ground creation
+  //     const response = await createNewGround(groundDetails, form, groundImg);
+  //     if (response.success) {
+  //       presentToast("Ground created successfully", "success");
+  //       history.push("/listground");
+  //     } else {
+  //       presentToast("Something went wrong", "danger");
+  //     }
+  //   } catch (error: any) {
+  //     console.error("Error:", error.message || error);
+  //     presentToast(
+  //       error.message || "Server error while creating ground",
+  //       "danger"
+  //     );
+  //   }
+  // };
+
+  const handleCreateNewGround = async () => {
+    await handleSubmit();
+    const { isAddOnAvailable } = groundDetails;
 
     try {
-      const response = await createNewGround(groundDetails);
-      console.log("response", response);
-
-      if (response.success) {
+      if (isAddOnAvailable) {
+        validateForm(); // Validate addon form if needed
       }
-    } catch (error) {
-      console.log("error", error);
+
+      console.log("Ground Details before API call:", groundDetails);
+
+      const response = await createNewGround(groundDetails, form, groundImg);
+      if (response.success) {
+        presentToast("Ground created successfully", "success");
+
+        setGroundDetails({
+          refGroundName: "",
+          isAddOnAvailable: true,
+          refAddOns: [],
+          refFeaturesId: [],
+          refUserGuidelinesId: [],
+          refFacilitiesId: [],
+          refAdditionalTipsId: [],
+          refSportsCategoryId: [],
+          refTournamentPrice: "",
+          refGroundPrice: "",
+          refGroundImage: "",
+          refGroundLocation: "",
+          refGroundPincode: "",
+          refGroundState: "",
+          refDescription: "",
+          IframeLink: "",
+          groundLocationLink: "",
+          refStatus: true,
+        });
+
+        // Redirect to list
+        history.push("/listground");
+      } else {
+        presentToast("Something went wrong", "danger");
+      }
+    } catch (error: any) {
+      console.error("Error:", error.message || error);
+      presentToast(
+        error.message || "Server error while creating ground",
+        "danger"
+      );
     }
   };
+
+  // const handleCreateNewGround = async () => {
+  //   const { isAddOnAvailable } = groundDetails;
+
+  //   if (isAddOnAvailable) {
+  //     // Navigate to AddOn page and pass the groundDetails state
+  //     history.push("/addons", { groundDetails });
+  //   } else {
+  //     try {
+  //       const response = await createNewGround(groundDetails);
+  //       if (response.success) {
+  //         presentToast("Ground created successfully", "success");
+  //         history.push("/groundlist"); // or wherever you want to redirect
+  //       } else {
+  //         presentToast("Something went wrong", "danger");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error creating ground:", error);
+  //       presentToast("Server error while creating ground", "danger");
+  //     }
+  //   }
+  // };
+
+  const presentToast = (msg: string, color: "success" | "danger") => {
+    present({
+      message: msg,
+      duration: 2000,
+      position: "bottom",
+      color,
+    });
+  };
+
   const [selectedSegment, setSelectedSegment] = useState("addground");
 
   const handleSegmentChange = (e: CustomEvent) => {
     const value = e.detail.value;
     if (value) setSelectedSegment(value);
+  };
+  const [form, setForm] = useState<AddOnForm>({
+    name: "",
+    isSubaddonsAvailable: false,
+    price: null,
+    refSubAddOns: [],
+  });
+
+  useEffect(() => {
+    if (selectedAddon) {
+      console.log(selectedAddon);
+      setForm(JSON.parse(selectedAddon));
+    }
+  }, [selectedAddon]);
+
+  const validateForm = () => {
+    if (!form.name) {
+      throw new Error("Add-On Title and Price are required.");
+    }
+    if (!form.isSubaddonsAvailable && form.price === null) {
+      console.log("form.price", form.price);
+      console.log("form.isSubaddonsAvailable", form.isSubaddonsAvailable);
+      throw new Error("Add-On Price is required.");
+    }
+    if (form.isSubaddonsAvailable) {
+      if (!form.refSubAddOns || form.refSubAddOns.length === 0) {
+        throw new Error("Enter atleast one subcategory and price.");
+      }
+      for (const sub of form.refSubAddOns || []) {
+        if (!sub.name) {
+          throw new Error("Subcategory Title is required.");
+        }
+        if (!sub.isItemsAvailable && sub.price === null) {
+          throw new Error(`Subcategory "${sub.name}" Price is required.`);
+        }
+        if (sub.isItemsAvailable) {
+          for (const item of sub.refItems || []) {
+            if (!item.name || item.price === null) {
+              throw new Error("Item Name and Price are required.");
+            }
+          }
+        } else if (sub.price === null) {
+          throw new Error(
+            "Subcategory Price is required when items are not available."
+          );
+        }
+      }
+    }
+  };
+
+  const handleSubmit = () => {
+    try {
+      validateForm(); // Validate the form before proceeding
+      const newAddon = { ...form }; // Create a new add-on object from the form state
+      console.log("newAddon", newAddon);
+      // Update groundDetails with the new add-on
+      setGroundDetails((prev) => ({
+        ...prev,
+        refAddOns: [...prev.refAddOns, newAddon], // Add new add-on to the array
+      }));
+
+      // Optionally, you can call onSave here if needed
+      // onSave(JSON.stringify(newAddon)); // Send it back as a string
+    } catch (error: any) {
+      console.error(error.message); // Display error message
+    }
+  };
+
+  const handleSubcategoryChange = <K extends keyof Subcategory>(
+    index: number,
+    field: K,
+    value: Subcategory[K]
+  ) => {
+    const updated = [...(form.refSubAddOns || [])];
+
+    if (field === "isItemsAvailable") {
+      updated[index][field] = value;
+      if (value && !updated[index].refItems) {
+        updated[index].refItems = [{ name: "", price: null }];
+      }
+      if (!value) {
+        delete updated[index].refItems;
+      }
+    } else {
+      updated[index][field] = value;
+    }
+
+    setForm({ ...form, refSubAddOns: updated });
+  };
+
+  const handleNestedChange = (
+    subIndex: number,
+    nestedIndex: number,
+    field: keyof NestedSubcategory,
+    value: any
+  ) => {
+    const updated = [...(form.refSubAddOns || [])];
+    const nested = updated[subIndex].refItems || [];
+    nested[nestedIndex] = { ...nested[nestedIndex], [field]: value };
+    updated[subIndex].refItems = nested;
+    setForm({ ...form, refSubAddOns: updated });
+  };
+
+  const addSubcategory = () => {
+    setForm({
+      ...form,
+      refSubAddOns: [
+        ...(form.refSubAddOns || []),
+        { name: "", isItemsAvailable: false, price: null, refItems: [] },
+      ],
+    });
+  };
+
+  const removeSubcategory = (index: number) => {
+    const updated = [...(form.refSubAddOns || [])];
+    updated.splice(index, 1);
+    setForm({ ...form, refSubAddOns: updated });
+  };
+
+  const addNestedSub = (subIndex: number) => {
+    const updated = [...(form.refSubAddOns || [])];
+    const nested = updated[subIndex].refItems || [];
+    nested.push({ name: "", price: null });
+    updated[subIndex].refItems = nested;
+    setForm({ ...form, refSubAddOns: updated });
+  };
+
+  const removeNestedSub = (subIndex: number, nestedIndex: number) => {
+    const updated = [...(form.refSubAddOns || [])];
+    updated[subIndex].refItems = updated[subIndex].refItems?.filter(
+      (_, i) => i !== nestedIndex
+    );
+    setForm({ ...form, refSubAddOns: updated });
   };
 
   return (
@@ -386,6 +600,7 @@ const Ownerprofile = () => {
               onSubmit={(e) => {
                 e.preventDefault();
                 handleCreateNewGround();
+                // handleSubmit();
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") e.preventDefault();
@@ -602,6 +817,8 @@ const Ownerprofile = () => {
                 />
               </div>
 
+           
+
               {/* Image container */}
               <div
                 className="flex flex-col items-center gap-2 m-4 mt-3 p-2 rounded-xl shadow-inset"
@@ -636,13 +853,201 @@ const Ownerprofile = () => {
                   />
                 </div>
               </div>
+
+              <IonText
+                color="primary"
+                style={{ "--background": "#fff", color: "#000" }}
+              >
+                <h2 className="ion-text-center">Create Add-On</h2>
+              </IonText>
+
+              <IonList>
+                <IonItem style={{ "--background": "#fff", color: "#000" }}>
+                  <IonLabel position="stacked">Add-On Title</IonLabel>
+                  <IonInput
+                    placeholder="Add On Title"
+                    value={form.name}
+                    onIonChange={(e) =>
+                      setForm({ ...form, name: e.detail.value as string })
+                    }
+                  />
+                </IonItem>
+
+                <IonItem
+                  lines="none"
+                  style={{ "--background": "#fff", color: "#000" }}
+                >
+                  <IonLabel>Has Subcategories?</IonLabel>
+                  <IonToggle
+                    checked={form.isSubaddonsAvailable}
+                    onIonChange={(e) =>
+                      setForm({
+                        ...form,
+                        isSubaddonsAvailable: e.detail.checked,
+                      })
+                    }
+                    className={`custom-toggle ${
+                      form.isSubaddonsAvailable ? "toggle-checked" : ""
+                    }`}
+                  />
+                </IonItem>
+              </IonList>
+
+              {form.isSubaddonsAvailable ? (
+                <>
+                  {form.refSubAddOns?.map((sub, index) => (
+                    <IonList
+                      key={index}
+                      className="ion-margin-bottom ion-padding"
+                      style={{ backgroundColor: "#fff", color: "#000;" }}
+                    >
+                      <IonText
+                        color="medium"
+                        style={{ "--background": "#fff", color: "#000;" }}
+                      >
+                        <h3 style={{ backgroundColor: "#fff", color: "#000;" }}>
+                          Subcategory {index + 1}
+                        </h3>
+                      </IonText>
+
+                      <IonItem
+                        style={{ "--background": "#fff", color: "#000" }}
+                      >
+                        <IonInput
+                          value={sub.name}
+                          placeholder="Subcategory Title"
+                          onIonChange={(e) =>
+                            handleSubcategoryChange(
+                              index,
+                              "name",
+                              e.detail.value ?? ""
+                            )
+                          }
+                        />
+                      </IonItem>
+
+                      <IonItem
+                        style={{ "--background": "#fff", color: "#000" }}
+                      >
+                        <IonLabel>Has Items?</IonLabel>
+                        <IonToggle
+                          checked={sub.isItemsAvailable}
+                          onIonChange={(e) =>
+                            handleSubcategoryChange(
+                              index,
+                              "isItemsAvailable",
+                              e.detail.checked
+                            )
+                          }
+                          className={`custom-toggle ${
+                            sub.isItemsAvailable ? "toggle-checked" : ""
+                          }`}
+                        />
+                      </IonItem>
+
+                      {!sub.isItemsAvailable && (
+                        <IonItem
+                          style={{ "--background": "#fff", color: "#000" }}
+                        >
+                          <IonInput
+                            type="number"
+                            value={sub.price}
+                            placeholder="Enter Price"
+                            className="custom-placeholder-black"
+                            onIonChange={(e) =>
+                              handleSubcategoryChange(
+                                index,
+                                "price",
+                                parseFloat(e.detail.value ?? "")
+                              )
+                            }
+                          />
+                        </IonItem>
+                      )}
+
+                      {sub.isItemsAvailable && (
+                        <>
+                          {sub.refItems?.map((nested, nIndex) => (
+                            <IonItem
+                              style={{ "--background": "#fff", color: "#000" }}
+                              key={nIndex}
+                            >
+                              <IonInput
+                                value={nested.name}
+                                placeholder={`Item ${nIndex + 1}`}
+                                onIonChange={(e) =>
+                                  handleNestedChange(
+                                    index,
+                                    nIndex,
+                                    "name",
+                                    e.detail.value
+                                  )
+                                }
+                              />
+                              <IonInput
+                                type="number"
+                                value={nested.price}
+                                placeholder="Price"
+                                onIonChange={(e) =>
+                                  handleNestedChange(
+                                    index,
+                                    nIndex,
+                                    "price",
+                                    parseFloat(e.detail.value ?? "")
+                                  )
+                                }
+                              />
+                              <IonButton
+                                color="danger"
+                                fill="clear"
+                                onClick={() => removeNestedSub(index, nIndex)}
+                              >
+                                Delete
+                              </IonButton>
+                            </IonItem>
+                          ))}
+                          <IonButton onClick={() => addNestedSub(index)}>
+                            Add Nested
+                          </IonButton>
+                        </>
+                      )}
+
+                      <IonButton
+                        color="danger"
+                        fill="clear"
+                        onClick={() => removeSubcategory(index)}
+                      >
+                        Remove Subcategory
+                      </IonButton>
+                    </IonList>
+                  ))}
+                  <IonButton expand="block" onClick={addSubcategory}>
+                    Add Subcategory
+                  </IonButton>
+                </>
+              ) : (
+                <IonItem style={{ "--background": "#fff", color: "#000" }}>
+                  <IonLabel position="stacked">Price</IonLabel>
+                  <IonInput
+                    type="number"
+                    value={form.price}
+                    placeholder="Enter Price"
+                    onIonChange={(e) =>
+                      setForm({
+                        ...form,
+                        price: parseFloat(e.detail.value ?? ""),
+                      })
+                    }
+                  />
+                </IonItem>
+              )}
+
               {/* Submit Button */}
               <div className="mt-[1rem] px-[3rem] pb-[3rem]">
                 <IonButton
-                  type="submit" // changed from submit because we handle navigation on click
+                  type="submit"
                   className="custom-ion-button w-full h-[2.5rem] text-[1rem]"
-                  onClick={() => history.push("/addons")}
-                  disabled={loading} // optionally disable while loading
+                  disabled={loading}
                 >
                   {loading ? (
                     <i
@@ -662,4 +1067,4 @@ const Ownerprofile = () => {
   );
 };
 
-export default Ownerprofile;
+export default AddGround;

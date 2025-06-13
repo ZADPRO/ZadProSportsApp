@@ -14,6 +14,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonItem,
   IonPage,
   IonSegment,
   IonSegmentButton,
@@ -208,7 +209,7 @@ const Facilities: React.FC = () => {
 
   const actionTemplate = (rowData: Facility) => (
     <div className="flex gap-2">
-      {editActivityId === rowData.refFacilitiesId ? (
+      {/* {editActivityId === rowData.refFacilitiesId ? (
         <Button
           label="Update"
           icon="pi pi-check"
@@ -221,7 +222,7 @@ const Facilities: React.FC = () => {
           className="p-button-warning p-button-sm"
           onClick={() => handleEditActivityClick(rowData)}
         />
-      )}
+      )} */}
       <Button
         icon="pi pi-trash"
         className="p-button-danger p-button-sm"
@@ -248,56 +249,64 @@ const Facilities: React.FC = () => {
               mode="md"
             ></IonBackButton>
           </IonButtons>
-          <IonTitle>Add Extra Features </IonTitle>
+          <IonTitle>Add Extra Facility </IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <div className="overallcontainer flex">
-          <div className="mt-[0.8rem] px-[1rem] w-[100%]">
-            <label className="text-[#000]"> Facility Name:</label>
-            <div className="flex justify-between w-[100%] mb-6">
-              <InputText
-                id="featureInputs"
-                className="h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
-                placeholder="Enter Feature Name"
-                value={newFacility}
-                onChange={(e) => setNewFacility(e.target.value)}
+        <div className="mt-[0.8rem] px-[1rem] w-[100%]">
+          <label className="text-[#000]"> Facility Name:</label>
+          <IonItem
+            style={{ "--background": "#fff", color: "#000" }}
+            lines="none"
+            className="mb-6 w-full"
+          >
+            <InputText
+              id="featureInputs"
+              className="h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
+              placeholder="Enter Facility Name"
+              value={newFacility}
+              onChange={(e) => setNewFacility(e.target.value)}
+            />
+          </IonItem>
+          <IonItem
+            style={{
+              "--background": "#fff",
+              color: "#000",
+              paddingTop: "1rem",
+              with: "30%",
+            }}
+            lines="none"
+            className="flex flex-row flex-end mb-6 "
+          >
+            <Button label="Add" className="" onClick={addFacility} />
+          </IonItem>
+
+          <div className="w-[100%] mt-5" style={{ marginTop: "30px" }}>
+            {/* Debug info */}
+
+            <DataTable scrollable showGridlines stripedRows value={facilities}>
+              <Column
+                field="sno"
+                header="S.No"
+                body={(_, { rowIndex }) => rowIndex + 1}
               />
-              <Button label="Add" className="" onClick={addFacility} />
-            </div>
+              <Column
+                field="refFacilitiesName"
+                header="Facility Name"
+                body={(rowData) =>
+                  editActivityId === rowData.refFacilitiesId ? (
+                    <InputText
+                      value={editActivityValue}
+                      onChange={handleActivityInputChange}
+                    />
+                  ) : (
+                    rowData.refFacilitiesName
+                  )
+                }
+              />
 
-            <div className="w-[90%] mt-5" style={{ marginTop: "30px" }}>
-              {/* Debug info */}
-
-              <DataTable
-                scrollable
-                showGridlines
-                stripedRows
-                value={facilities}
-              >
-                <Column
-                  field="sno"
-                  header="S.No"
-                  body={(_, { rowIndex }) => rowIndex + 1}
-                />
-                <Column
-                  field="refFacilitiesName"
-                  header="Facility Name"
-                  body={(rowData) =>
-                    editActivityId === rowData.refFacilitiesId ? (
-                      <InputText
-                        value={editActivityValue}
-                        onChange={handleActivityInputChange}
-                      />
-                    ) : (
-                      rowData.refFacilitiesName
-                    )
-                  }
-                />
-
-                <Column body={actionTemplate} header="Actions" />
-              </DataTable>
-            </div>
+              <Column body={actionTemplate} header="Actions" />
+            </DataTable>
           </div>
         </div>
       </IonContent>

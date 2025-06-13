@@ -14,6 +14,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonItem,
   IonPage,
   IonSegment,
   IonSegmentButton,
@@ -151,7 +152,7 @@ const Features: React.FC = () => {
           refFeaturesName: editActivityValue, // Ensure correct field name
         },
         {
-         headers: {
+          headers: {
             Authorization: localStorage.getItem("token"),
             "Content-Type": "application/json",
           },
@@ -218,7 +219,7 @@ const Features: React.FC = () => {
 
   const actionTemplate = (rowData: FeaturesResult) => (
     <div className="flex gap-2">
-      {editActivityId === rowData.refFeaturesId ? (
+      {/* {editActivityId === rowData.refFeaturesId ? (
         <Button
           label="Update"
           icon="pi pi-check"
@@ -231,7 +232,7 @@ const Features: React.FC = () => {
           className="p-button-warning p-button-sm"
           onClick={() => handleEditActivityClick(rowData)}
         />
-      )}
+      )} */}
       <Button
         icon="pi pi-trash"
         className="p-button-danger p-button-sm"
@@ -266,10 +267,14 @@ const Features: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <div className="overallcontainer flex">
+        <div>
           <div className="mt-[0.8rem] px-[1rem] w-[100%]">
             <label className="text-[#000]"> Ground Features:</label>
-            <div className="flex justify-between w-[100%] mb-6">
+            <IonItem
+              style={{ "--background": "#fff", color: "#000" }}
+              lines="none"
+              className="mb-6 w-full"
+            >
               <InputText
                 id="featureInputs"
                 className="h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
@@ -278,42 +283,53 @@ const Features: React.FC = () => {
                 onChange={(e) => setFeatureInputs(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addSportApi()}
               />
+            </IonItem>
+            <IonItem
+              style={{
+                "--background": "#fff",
+                color: "#000",
+                paddingTop: "1rem",
+                with: "30%",
+              }}
+              lines="none"
+              className="flex flex-row flex-end mb-6 "
+            >
               <Button label="Add" className="" onClick={addSportApi} />
-            </div>
+            </IonItem>
+          </div>
 
-            <div className="w-[90%] mt-5" style={{ marginTop: "30px" }}>
-              {/* Debug info */}
+          <div className="w-[100%] mt-5" style={{ marginTop: "30px" }}>
+            {/* Debug info */}
 
-              <DataTable
-                // cellMemo={false}
-                scrollable
-                showGridlines
-                stripedRows
-                value={getFeaturesResult}
-              >
-                <Column
-                  field="sno"
-                  header="S.No"
-                  body={(_, { rowIndex }) => rowIndex + 1}
-                />
-                <Column
-                  field="refFeaturesName"
-                  header="Features Name"
-                  body={(rowData) =>
-                    editActivityId === rowData.refFeaturesId ? (
-                      <InputText
-                        value={editActivityValue}
-                        onChange={handleActivityInputChange}
-                      />
-                    ) : (
-                      rowData.refFeaturesName
-                    )
-                  }
-                />
+            <DataTable
+              // cellMemo={false}
+              scrollable
+              showGridlines
+              stripedRows
+              value={getFeaturesResult}
+            >
+              <Column
+                field="sno"
+                header="S.No"
+                body={(_, { rowIndex }) => rowIndex + 1}
+              />
+              <Column
+                field="refFeaturesName"
+                header="Features Name"
+                body={(rowData) =>
+                  editActivityId === rowData.refFeaturesId ? (
+                    <InputText
+                      value={editActivityValue}
+                      onChange={handleActivityInputChange}
+                    />
+                  ) : (
+                    rowData.refFeaturesName
+                  )
+                }
+              />
 
-                <Column body={actionTemplate} header="Actions" />
-              </DataTable>
-            </div>
+              <Column body={actionTemplate} header="Actions" />
+            </DataTable>
           </div>
         </div>
       </IonContent>

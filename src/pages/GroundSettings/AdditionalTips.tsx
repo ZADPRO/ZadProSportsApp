@@ -14,6 +14,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonItem,
   IonPage,
   IonSegment,
   IonSegmentButton,
@@ -203,20 +204,22 @@ const AdditionalTips: React.FC = () => {
 
   const actionTemplate = (rowData: Tip) => (
     <div className="flex gap-2">
-      {editActivityId === rowData.refAdditionalTipsId ? (
-        <Button
-          label="Update"
-          icon="pi pi-check"
-          className="p-button-success p-button-sm"
-          onClick={UpdateTips}
-        />
+      {/* {editActivityId === rowData.refAdditionalTipsId ? (
+        // <Button
+        //   label="Update"
+        //   icon="pi pi-check"
+        //   className="p-button-success p-button-sm"
+        //   onClick={UpdateTips}
+        <></>
+        // />
       ) : (
-        <Button
-          icon="pi pi-pencil"
-          className="p-button-warning p-button-sm"
-          onClick={() => handleEditActivityClick(rowData)}
-        />
-      )}
+        // <Button
+        //   icon="pi pi-pencil"
+        //   className="p-button-warning p-button-sm"
+        //   onClick={() => handleEditActivityClick(rowData)}
+        // />
+        <></>
+      )} */}
       <Button
         icon="pi pi-trash"
         className="p-button-danger p-button-sm"
@@ -243,25 +246,44 @@ const AdditionalTips: React.FC = () => {
               mode="md"
             ></IonBackButton>
           </IonButtons>
-          <IonTitle>Add Extra Features </IonTitle>
+          <IonTitle>Additional Tips </IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <div className="overallcontainer flex">
+        <div>
           <div className="mt-[0.8rem] px-[1rem] w-[100%]">
             <label className="text-[#000]"> Tip Name:</label>
-            <div className="flex justify-between w-[100%] mb-6">
+            <IonItem
+              style={{ "--background": "#fff", color: "#000" }}
+              lines="none"
+              className="mb-6 w-full"
+            >
               <InputText
                 id="featureInputs"
-                className="h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
-                placeholder="Enter Feature Name"
+                className="h-[2.2rem] mt-[0.2rem] text-[#000] px-3 w-full border border-gray-300 rounded-md bg-white"
+                placeholder="Enter Tip Name"
                 value={tipInput}
                 onChange={(e) => setTipInput(e.target.value)}
               />
-              <Button label="Add" className="" onClick={addTip} />
-            </div>
+            </IonItem>
+            <IonItem
+              style={{
+                "--background": "#fff",
+                color: "#000",
+                paddingTop: "1rem",
+                with: "30%",
+              }}
+              lines="none"
+              className="flex flex-row flex-end mb-6 "
+            >
+              <Button
+                label="Add"
+                className="p-button-primary p-button-sm min-w-[80px] mt-[0.2rem]"
+                onClick={addTip}
+              />
+            </IonItem>
 
-            <div className="w-[90%] mt-5" style={{ marginTop: "30px" }}>
+            <div className="w-[100%] mt-5" style={{ marginTop: "30px" }}>
               {/* Debug info */}
 
               <DataTable

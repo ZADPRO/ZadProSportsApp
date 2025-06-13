@@ -156,10 +156,10 @@ export const fetchSportCategories = async (): Promise<
   const response = await axios.get(
     `${import.meta.env.VITE_API_URL}/v1/settingRoutes/listSportCategory`,
     {
-       headers: {
-            Authorization: localStorage.getItem("token"),
-            "Content-Type": "application/json",
-          },
+      headers: {
+        Authorization: localStorage.getItem("token"),
+        "Content-Type": "application/json",
+      },
     }
   );
 
@@ -296,10 +296,34 @@ export const fetchAddOnAvailability = async () => {
   }
 };
 
-export const createNewGround = async (formData: GroundAdd) => {
+export const createNewGround = async (
+  formData: GroundAdd,
+  form: any,
+  groundImg: any
+) => {
+  console.log("image-----------",groundImg);
   const response = await axios.post(
     `${import.meta.env.VITE_API_URL}/v1/groundRoutes/addGround`,
-    formData,
+    {
+      refGroundName: formData.refGroundName,
+      isAddOnAvailable: formData.isAddOnAvailable,
+      refFeaturesId: formData.refFeaturesId,
+      refUserGuidelinesId: formData.refUserGuidelinesId,
+      refFacilitiesId: formData.refFacilitiesId,
+      refAdditionalTipsId: formData.refAdditionalTipsId,
+      refSportsCategoryId: formData.refSportsCategoryId,
+      refTournamentPrice: formData.refTournamentPrice,
+      refGroundPrice: formData.refGroundPrice,
+      refGroundImage: groundImg,
+      refGroundLocation: formData.refGroundLocation,
+      refGroundPincode: formData.refGroundPincode,
+      refGroundState: formData.refGroundState,
+      refDescription: formData.refDescription,
+      IframeLink: formData.IframeLink,
+      groundLocationLink: formData.groundLocationLink,
+      refStatus: formData.refStatus,
+      refAddOns: [form],
+    },
     {
       headers: {
         Authorization: localStorage.getItem("token"),
@@ -389,7 +413,8 @@ export const uploadGroundImage = async (formData: any) => {
     {
       headers: {
         Authorization: localStorage.getItem("token"),
-        "Content-Type": "application/json",
+        // 'Content-Type': 'application/json',
+        "Content-Type": "multipart/form-data",
       },
     }
   );

@@ -47,6 +47,7 @@ const LoginScreen = () => {
           response.data[0],
           import.meta.env.VITE_ENCRYPTION_KEY
         );
+        console.log("decryptedData", decryptedData);
 
         if (decryptedData.success) {
           console.log("decryptedData", decryptedData);
@@ -212,34 +213,45 @@ const LoginScreen = () => {
                 {error.status ? error.message : ""}
                 {success.status ? success.message : ""}
               </div>
-              <div className="mt-[0.3rem] px-[3rem]">
-                <IonButton
-                  type="submit"
-                  className="custom-ion-button font-[poppins] w-[100%] h-[2.5rem] text-[#fff] text-[1rem]"
-                >
-                  {loading ? (
-                    <i
-                      className="pi pi-spin pi-spinner"
-                      style={{ fontSize: "1rem" }}
-                    ></i>
-                  ) : (
-                    "Login"
-                  )}
-                </IonButton>
+              <div
+                onClick={() => {
+                  // roleID = 2 for user, 4 for owner (try 3 fallback can be handled in forgetpassword page)
+                  const roleID = selectedRole === "user" ? 2 : 4;
+                  history.push("/forgetpassword", { roleID });
+                }}
+                className="flex justify-center items-center text-[1rem] text-[#000] font-[poppins] underline"
+              >
+                Forget Password
               </div>
-              <div className="mt-[3rem] flex justify-center items-center gap-[0.5rem]">
-                <div
-                  onClick={() => {
-                    if (selectedRole == "user") {
-                      history.push("/signup");
-                    } else {
-                      history.push("/ownersignup");
-                    }
-                  }}
-                  className="text-[1rem] text-[#000] font-[poppins] underline"
-                >
-                  Need an account ? Get Started Here
-                </div>
+         
+            </div>
+            <div className="mt-[0.3rem] px-[3rem]">
+              <IonButton
+                type="submit"
+                className="custom-ion-button font-[poppins] w-[100%] h-[2.5rem] text-[#fff] text-[1rem]"
+              >
+                {loading ? (
+                  <i
+                    className="pi pi-spin pi-spinner"
+                    style={{ fontSize: "1rem" }}
+                  ></i>
+                ) : (
+                  "Login"
+                )}
+              </IonButton>
+            </div>
+            <div className="mt-[3rem] flex justify-center items-center gap-[0.5rem]">
+              <div
+                onClick={() => {
+                  if (selectedRole == "user") {
+                    history.push("/signup");
+                  } else {
+                    history.push("/ownersignup");
+                  }
+                }}
+                className="text-[1rem] text-[#000] font-[poppins] underline"
+              >
+                Need an account ? Get Started Here
               </div>
             </div>
           </form>

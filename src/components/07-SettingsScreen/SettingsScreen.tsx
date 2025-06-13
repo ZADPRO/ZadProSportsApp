@@ -26,6 +26,7 @@ import { MdOutlinePrivacyTip } from "react-icons/md";
 
 const SettingsScreen = () => {
   const [name, setName] = useState("User");
+  const roleID = localStorage.getItem("roleID");
 
   const ionRouter = useIonRouter();
 
@@ -104,7 +105,7 @@ const SettingsScreen = () => {
                 const roleID = localStorage.getItem("roleID");
                 if (roleID == "2") {
                   history.push("/profile");
-                } else if (roleID == "3") {
+                } else if (roleID == "3" || roleID == "4") {
                   history.push("/ownerprofile");
                 } else {
                   console.warn("Unknown roleID:", roleID);
@@ -121,22 +122,29 @@ const SettingsScreen = () => {
                 <IoIosArrowForward className="text-[#282828] text-[1.2rem]" />
               </div>
             </div>
-            <div
-              className="mt-[0.6rem] mb-[0.4rem] flex justify-between"
-              onClick={() => {
-                history.push("/bookinghistory");
-              }}
-            >
-              <div className="text-[0.9rem] font-[poppins] text-[#282828] font-[500] flex gap-[1rem]">
-                <span>
-                  <RiHistoryFill className="text-[1.5rem]" />
-                </span>
-                Booked History
+
+            {roleID !== "3" && (
+              <div
+                className="mt-[0.6rem] mb-[0.4rem] flex justify-between"
+                onClick={() => {
+                  if (roleID === "2" || roleID === "4") {
+                    history.push("/bookinghistory");
+                  } else {
+                    console.warn("Unknown roleID:", roleID);
+                  }
+                }}
+              >
+                <div className="text-[0.9rem] font-[poppins] text-[#282828] font-[500] flex gap-[1rem]">
+                  <span>
+                    <RiHistoryFill className="text-[1.5rem]" />
+                  </span>
+                  Booked History
+                </div>
+                <div>
+                  <IoIosArrowForward className="text-[#282828] text-[1.2rem]" />
+                </div>
               </div>
-              <div>
-                <IoIosArrowForward className="text-[#282828] text-[1.2rem]" />
-              </div>
-            </div>
+            )}
           </div>
 
           <div

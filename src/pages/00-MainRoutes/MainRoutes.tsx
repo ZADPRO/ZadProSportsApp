@@ -19,6 +19,8 @@ import {
   settingsOutline,
   location,
   locationOutline,
+  add,
+  addOutline,
 } from "ionicons/icons";
 import { football, footballOutline } from "ionicons/icons";
 
@@ -48,6 +50,9 @@ import BookedScreen from "../../components/12-BookedScreen/BookedScreen";
 import SegmentTabs from "../../components/09-Segments/SegmentTabs ";
 import ListGround from "../03-Listground/ListGround";
 import OwnerGround from "../../components/05-GroundDescription/OwnerGround";
+import EditGround from "../../components/15-AddGround/EditGround";
+import Dashboard from "../04-Dashboard/Dashboard";
+import Forgetpassword from "../../components/16-Forgetpassword/Forgetpassword";
 
 const MainRoutes = () => {
   const location = useLocation();
@@ -67,8 +72,19 @@ const MainRoutes = () => {
 
   useEffect(() => {
     const roleID = parseInt(localStorage.getItem("roleID") || "0", 10);
-    const allowedPaths = ["/home", "/settings","/listground","/segment"];
-    setShowTabBar(roleID === 4 && allowedPaths.includes(location.pathname));
+    const allowedPathsFor3 = ["/home", "/settings"];
+    const allowedPathsFor2 = ["/home", "/settings"];
+    const allowedPathsFor4 = ["/home", "/settings", "/listground", "/segment"];
+
+    if (roleID === 3 && allowedPathsFor3.includes(location.pathname)) {
+      setShowTabBar(true);
+    } else if (roleID === 4 && allowedPathsFor4.includes(location.pathname)) {
+      setShowTabBar(true);
+    } else if (roleID === 2 && allowedPathsFor2.includes(location.pathname)) {
+      setShowTabBar(true);
+    } else {
+      setShowTabBar(false);
+    }
   }, [location.pathname]);
 
   const getActiveClass = (path: string) => {
@@ -83,6 +99,9 @@ const MainRoutes = () => {
     <IonTabs>
       <IonRouterOutlet id="main">
         <Route exact path="/">
+          <Splashscreen />
+        </Route>
+        <Route exact path="/splash">
           <Splashscreen />
         </Route>
         <Route exact path="/login">
@@ -109,7 +128,7 @@ const MainRoutes = () => {
         <Route exact path="/groundDescriptions">
           <GroundDescription />
         </Route>
-         <Route exact path="/ownerground">
+        <Route exact path="/ownerground">
           <OwnerGround />
         </Route>
         <Route exact path="/booking">
@@ -130,14 +149,23 @@ const MainRoutes = () => {
         <Route exact path="/segment">
           <SegmentTabs />
         </Route>
-        <Route exact path="/addground">
+        {/* <Route exact path="/addground">
           <AddGround />
+        </Route> */}
+        <Route exact path="/editground">
+          <EditGround />
         </Route>
-        <Route exact path="/addons">
-          <CreateAddOns />
+        <Route exact path="/dashbord">
+          <Dashboard />
         </Route>
+        {/* <Route exact path="/addons">
+            <CreateAddOns />
+          </Route> */}
         <Route exact path="/groundsettings">
           <GroundSettings />
+        </Route>
+        <Route exact path="/forgetpassword">
+          <Forgetpassword />
         </Route>
         <Route exact path="/sportscategory">
           <SportCategory />
@@ -166,12 +194,13 @@ const MainRoutes = () => {
         <Route exact path="/bookinghistory">
           <BookedScreen />
         </Route>
-        <Redirect exact from="/" to="/home" />
+        {/* <Redirect exact from="/" to="/splash" /> */}
       </IonRouterOutlet>
 
       {/* Only show tab bar if roleID === 3 and path is /home or /settings */}
       {showTabBar && (
         <IonTabBar slot="bottom">
+          {/* Common: Home tab */}
           <IonTabButton
             tab="home"
             href="/home"
@@ -191,44 +220,53 @@ const MainRoutes = () => {
             <IonLabel>Home</IonLabel>
           </IonTabButton>
 
-          <IonTabButton
-            tab="listground"
-            href="/listground"
-            className={getActiveClass("/listground")}
-            style={{
-              backgroundColor:
-                location.pathname === "/listground" ? "#0478df" : "#ffffff",
-              color: location.pathname === "/listground" ? "white" : "#0478df",
-            }}
-          >
-            <IonIcon
-              icon={getIcon("/listground", football, footballOutline)}
+          {/* RoleID 4: Ground tab */}
+          {parseInt(localStorage.getItem("roleID") || "0", 10) === 4 && (
+            <IonTabButton
+              tab="listground"
+              href="/listground"
+              className={getActiveClass("/listground")}
               style={{
+                backgroundColor:
+                  location.pathname === "/listground" ? "#0478df" : "#ffffff",
                 color:
                   location.pathname === "/listground" ? "white" : "#0478df",
               }}
-            />
-            <IonLabel>Ground</IonLabel>
-          </IonTabButton>
-          <IonTabButton
-            tab="segment"
-            href="/segment"
-            className={getActiveClass("/segment")}
-            style={{
-              backgroundColor:
-                location.pathname === "/segment" ? "#0478df" : "#ffffff",
-              color: location.pathname === "/segment" ? "white" : "#0478df",
-            }}
-          >
-            <IonIcon
-              icon={getIcon("/segment", settings, locationOutline)}
+            >
+              <IonIcon
+                icon={getIcon("/listground", football, footballOutline)}
+                style={{
+                  color:
+                    location.pathname === "/listground" ? "white" : "#0478df",
+                }}
+              />
+              <IonLabel>Ground</IonLabel>
+            </IonTabButton>
+          )}
+
+          {/* RoleID 4: Segment tab */}
+          {parseInt(localStorage.getItem("roleID") || "0", 10) === 4 && (
+            <IonTabButton
+              tab="segment"
+              href="/segment"
+              className={getActiveClass("/segment")}
               style={{
+                backgroundColor:
+                  location.pathname === "/segment" ? "#0478df" : "#ffffff",
                 color: location.pathname === "/segment" ? "white" : "#0478df",
               }}
-            />
-            <IonLabel>Segment</IonLabel>
-          </IonTabButton>
+            >
+              <IonIcon
+                icon={getIcon("/segment", add, addOutline)}
+                style={{
+                  color: location.pathname === "/segment" ? "white" : "#0478df",
+                }}
+              />
+              <IonLabel>Add</IonLabel>
+            </IonTabButton>
+          )}
 
+          {/* Common: Settings tab */}
           <IonTabButton
             tab="settings"
             href="/settings"
@@ -247,25 +285,6 @@ const MainRoutes = () => {
             />
             <IonLabel>Settings</IonLabel>
           </IonTabButton>
-
-          {/* <IonTabButton
-            tab="segment"
-            href="/segment"
-            className={getActiveClass("/segment")}
-            style={{
-              backgroundColor:
-                location.pathname === "/segment" ? "#0478df" : "#ffffff",
-              color: location.pathname === "/segment" ? "white" : "#0478df",
-            }}
-          >
-            <IonIcon
-              icon={getIcon("/segment", settings, footballOutline)}
-              style={{
-                color: location.pathname === "/segment" ? "white" : "#0478df",
-              }}
-            />
-            <IonLabel>Add</IonLabel>
-          </IonTabButton> */}
         </IonTabBar>
       )}
     </IonTabs>

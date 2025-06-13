@@ -16,6 +16,8 @@ import { decrypt } from "../../Helper";
 import { Skeleton } from "primereact/skeleton";
 import Logo from "../../assets/images/unavailable.png";
 import user from "../../assets/images/user.jpg";
+import Boy from "../../assets/svgfloder/Animation/esTxX5Rd3L.json";
+import Lottie from "lottie-react";
 
 const ListGround = () => {
   const [loading, setLoading] = useState(false);
@@ -68,7 +70,7 @@ const ListGround = () => {
         import.meta.env.VITE_ENCRYPTION_KEY
       );
       localStorage.setItem("token", "Bearer " + data.token);
-      console.log("fetchGroundTypes", data);
+      console.log("listSportCategory", data);
       setGroundTypes(data.result);
     } catch (e) {
       console.log(e);
@@ -92,7 +94,7 @@ const ListGround = () => {
         import.meta.env.VITE_ENCRYPTION_KEY
       );
       localStorage.setItem("token", "Bearer " + data.token);
-      console.log("fetchGround", data);
+      console.log("listGround-fetchGround", data);
       setAddedGround(data.result);
     } catch (e) {
       console.log(e);
@@ -148,112 +150,88 @@ const ListGround = () => {
         </IonRefresher>
 
         {loading ? (
-          <div className="bg-[#fff] w-full overflow-auto px-[1rem] py-[1rem]">
-            <div className="flex justify-start items-center gap-[10px]">
-              {[1, 2, 3, 4].map((_, idx) => (
-                <Skeleton
-                  key={idx}
-                  className="font-[poppins] w-[5rem] h-[1.5rem] rounded-[10px] px-[1rem]"
-                  style={{ boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px" }}
-                />
-              ))}
-            </div>
-            <div className="w-full overflow-x-auto hide-scrollbar px-[3px] py-[1rem]">
-              <div className="flex flex-col gap-[1rem]">
-                {[1, 2].map((_, idx) => (
-                  <Skeleton
-                    key={idx}
-                    className="min-w-[200px] rounded-[10px]"
-                    height="140px"
-                    style={{
-                      boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px",
-                    }}
-                  />
-                ))}
-              </div>
+          <div className="w-full h-[70vh] flex flex-col justify-center items-center">
+            <Lottie animationData={Boy} loop={true} />
+            <IonSkeletonText className="w-[200px] h-[200px]" />
+            <div className="mt-1 font-[poppins] text-[#000]">
+              Loading grounds...
             </div>
           </div>
+        ) : addedGround?.length === 0 ? (
+          <div className="text-center text-gray-500 font-[poppins] mt-[2rem]">
+            No grounds found.
+          </div>
         ) : (
-          <div className="bg-[#fff] w-full overflow-auto px-[1rem] py-[1rem]">
-            <div className="w-full overflow-x-auto hide-scrollbar px-[3px] py-[1rem]">
-              <div className="flex flex-col gap-[1rem]">
-                {addedGround.length > 0 ? (
-                  addedGround.map((ground: any, index: number) => (
+          <div className="px-[1rem] py-[1rem]">
+            {addedGround?.map((ground: any, index: number) => (
+              <div
+                key={index}
+                className="min-w-[200px] bg-[#f7f7f7] rounded-[10px] mb-[1rem]"
+                style={{
+                  boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px",
+                }}
+              >
+                <div>
+                  <img
+                    onClick={() => {
+                      history.push(
+                        `/groundDescriptions?groundId=${ground.refGroundId}&booknowStatus=false`
+                      );
+                    }}
+                    src={
+                      ground.refGroundImage
+                        ? `data:${ground.refGroundImage.contentType};base64,${ground.refGroundImage.content}`
+                        : Logo
+                    }
+                    style={{ width: "100%", height: "130px" }}
+                    className="rounded-tr-[10px] rounded-tl-[10px] object-cover"
+                    alt="ground"
+                  />
+                  <div className="flex justify-between items-center px-[0.5rem] gap-[0.5rem] pb-[0.1rem]">
                     <div
-                      key={index}
-                      className="min-w-[200px] bg-[#f7f7f7] rounded-[10px]"
-                      style={{
-                        boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px",
+                      onClick={() => {
+                        history.push(
+                          `/groundDescriptions?groundId=${ground.refGroundId}&booknowStatus=false`
+                        );
                       }}
+                      className="py-[0.1rem] w-[68%]"
                     >
-                      <div>
-                        <img
-                          onClick={() => {
-                            history.push(
-                              `/groundDescriptions?groundId=${ground.refGroundId}&booknowStatus=false`
-                            );
-                          }}
-                          src={
-                            ground.refGroundImage
-                              ? `data:${ground.refGroundImage.contentType};base64,${ground.refGroundImage.content}`
-                              : Logo
-                          }
-                          style={{ width: "100%", height: "130px" }}
-                          className="rounded-tr-[10px] rounded-tl-[10px] object-cover"
-                          alt={Logo}
-                        />
-                        <div className="flex justify-between items-center px-[0.5rem] gap-[0.5rem] pb-[0.1rem]">
-                          <div
-                            onClick={() => {
-                              history.push(
-                                `/groundDescriptions?groundId=${ground.refGroundId}&booknowStatus=false`
-                              );
-                            }}
-                            className="py-[0.1rem] w-[68%]"
-                          >
-                            <div
-                              className="text-[#3c3c3c] text-[0.8rem] font-[600] font-[poppins]"
-                              style={{
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                            >
-                              {ground.refGroundName}
-                            </div>
-                            <div
-                              className="text-[#3c3c3c] text-[0.7rem] font-[500] my-[0.1rem] font-[poppins]"
-                              style={{
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                            >
-                              {ground.refGroundLocation},{" "}
-                              {ground.refGroundState}, {ground.refGroundPincode}
-                            </div>
-                          </div>
-                          <IonButton
-                            onClick={() => {
-                              history.push(
-                                `/ownerground?groundId=${ground.refGroundId}&booknowStatus=true`
-                              );
-                            }}
-                            className="custom-ion-button font-[poppins] w-[5rem] text-[#fff] text-[0.6rem] font-[500]"
-                          >
-                            View More
-                          </IonButton>
-                        </div>
+                      <div
+                        className="text-[#3c3c3c] text-[0.8rem] font-[600] font-[poppins]"
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {ground.refGroundName}
+                      </div>
+                      <div
+                        className="text-[#3c3c3c] text-[0.7rem] font-[500] my-[0.1rem] font-[poppins]"
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {ground.refGroundLocation}, {ground.refGroundState},{" "}
+                        {ground.refGroundPincode}
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center text-gray-500 font-[poppins]">
-                    No grounds found.
+                    <IonButton
+                      onClick={() => {
+                        history.push(
+                          `/ownerground?groundId=${ground.refGroundId}&booknowStatus=true`
+                        );
+                      }}
+                      className="custom-ion-button font-[poppins] w-[5rem] text-[#fff] text-[0.6rem] font-[500]"
+                    >
+                      View More
+                    </IonButton>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         )}
       </IonContent>
