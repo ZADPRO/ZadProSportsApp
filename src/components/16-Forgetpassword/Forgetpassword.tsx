@@ -103,11 +103,11 @@ const Forgetpassword = () => {
                   htmlFor="username"
                   className="text-[#000] font-[poppins]"
                 >
-                  Forget Password
+                  Email
                 </label>
                 <InputText
                   id="username"
-                  placeholder="Forget Password"
+                  placeholder="Enter Email "
                   value={data.username}
                   onChange={(e: any) => {
                     setData((prevData) => ({

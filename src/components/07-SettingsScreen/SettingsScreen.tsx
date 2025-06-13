@@ -138,8 +138,13 @@ const SettingsScreen = () => {
                   <span>
                     <RiHistoryFill className="text-[1.5rem]" />
                   </span>
-                  Booked History
+                  {roleID === "2"
+                    ? "Booked History"
+                    : roleID === "3" || roleID === "4"
+                    ? "Ground History"
+                    : null}
                 </div>
+
                 <div>
                   <IoIosArrowForward className="text-[#282828] text-[1.2rem]" />
                 </div>
