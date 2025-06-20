@@ -7,8 +7,15 @@ import {
   IonItem,
   IonList,
   IonPage,
-  IonSegment,
-  IonSegmentButton,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
+  IonChip,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonIcon,
   IonTitle,
   IonToggle,
   IonToolbar,
@@ -27,6 +34,7 @@ import { FileUpload } from "primereact/fileupload";
 import { InputText } from "primereact/inputtext";
 import { MultiSelect } from "primereact/multiselect";
 import { useEffect, useRef, useState } from "react";
+import { trash, calendar, pencil, add } from "ionicons/icons";
 
 import { decrypt } from "../../Helper";
 import axios from "axios";
@@ -47,6 +55,11 @@ import {
 } from "../ground/GroundUtlis";
 import CreateAddOns from "./CreateAddOns";
 import GroundSettings from "./GroundSettings";
+import { Panel } from "primereact/panel";
+import { Button } from "primereact/button";
+import { Calendar } from "primereact/calendar";
+
+import { Chip } from "primereact/chip";
 
 interface GroundImage {
   content: string; // base64 image data
@@ -58,7 +71,7 @@ export interface AddOnForm {
   name: string;
   isSubaddonsAvailable: boolean;
   price?: number | null;
-  refSubAddOns?: object[];
+  refSubAddOns?: any[];
 }
 interface AddOnItem {
   id: number;
@@ -74,14 +87,6 @@ type AddOnAvailability = {
 };
 interface EditGroundSidebarProps {
   groundData: any;
-}
-
-interface AddOnItem {
-  id: number;
-  addOn: string;
-  price: number;
-  unAvailabilityDates: AddOnAvailability[];
-  subAddOns: any[]; // You can define a more specific type if known
 }
 
 type SelectedAddonDates = {
@@ -140,6 +145,7 @@ const EditGround = () => {
   const groundData = useLocation().state;
 
   console.log("id", groundData);
+  const [present] = useIonToast();
 
   const [newAddonSidebar, setNewAddonSidebar] = useState(false);
   const [editAddonSidebar, setEditAddonSidebar] = useState(false);
@@ -148,28 +154,118 @@ const EditGround = () => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // To open for new add-on
-  const handleAddNew = () => {
-    setEditingAddon(null);
-    setEditingIndex(null);
-    setIsEditing(false);
-    setNewAddonSidebar(true);
-  };
-
-  // To edit existing
-  const handleEditAddon = (addon: any, index: number) => {
-    const res = addOns.find((item: any) => item.id === addon.id);
-    setEditingAddon(JSON.stringify(res));
-    setEditingIndex(index);
-    setIsEditing(true);
-    setEditAddonSidebar(true);
-  };
-
   const [groundImg, setGroundImg] = useState<GroundImage | null>(null);
 
   const [selectedAddonDates, setSelectedAddonDates] = useState<
     SelectedAddonDates[]
   >([]);
+
+  const [form, setForm] = useState<AddOnForm>({
+    name: "",
+    isSubaddonsAvailable: false,
+    price: null,
+    refSubAddOns: [],
+  });
+
+  const [formDataImages, setFormdataImages] = useState<any>([]);
+  const [tokenErrorAlert, setTokenErrorAlert] = useState(false);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("/your-protected-api");
+      } catch (err: any) {
+        if (
+          err?.response?.data?.message === "Invalid or expired token" ||
+          err?.message === "Invalid or expired token"
+        ) {
+          setTokenErrorAlert(true);
+        }
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Fixed handleCreateOrUpdateAddon function
+  const handleCreateOrUpdateAddon = async () => {
+    if (!form.name.trim()) return;
+
+    try {
+      const newAddon: AddOnItem = {
+        id:
+          isEditing && editingIndex !== null
+            ? addOns[editingIndex].id
+            : Date.now(), // Keep existing ID when editing
+        addOn: form.name,
+        price: form.price || 0,
+        unAvailabilityDates:
+          isEditing && editingIndex !== null
+            ? addOns[editingIndex].unAvailabilityDates
+            : [],
+        subAddOns: form.isSubaddonsAvailable ? form.refSubAddOns || [] : [],
+      };
+
+      if (isEditing && editingIndex !== null) {
+        // Update existing addon
+        const updatedAddOns = [...addOns];
+        updatedAddOns[editingIndex] = newAddon;
+        setAddOns(updatedAddOns);
+      } else {
+        // Add new addon
+        setAddOns([...addOns, newAddon]);
+      }
+
+      // Reset form
+      setForm({
+        name: "",
+        isSubaddonsAvailable: false,
+        price: null,
+        refSubAddOns: [],
+      });
+
+      // Close sidebars
+      setNewAddonSidebar(false);
+      setEditAddonSidebar(false);
+      setIsEditing(false);
+      setEditingAddon(null);
+      setEditingIndex(null);
+    } catch (error) {
+      console.error("Error creating/updating addon:", error);
+    }
+  };
+
+  // Fixed handleEditAddon function to properly populate form
+  const handleEditAddon = (addon: any, index: number) => {
+    const res = addOns.find((item: any) => item.id === addon.id);
+    if (res) {
+      // Populate the form with existing addon data
+      setForm({
+        name: res.addOn,
+        isSubaddonsAvailable: res.subAddOns && res.subAddOns.length > 0,
+        price: res.price,
+        refSubAddOns: res.subAddOns || [],
+      });
+
+      setEditingAddon(JSON.stringify(res));
+      setEditingIndex(index);
+      setIsEditing(true);
+      setEditAddonSidebar(true);
+    }
+  };
+
+  // Fixed handleAddNew function to reset form
+  const handleAddNew = () => {
+    setForm({
+      name: "",
+      isSubaddonsAvailable: false,
+      price: null,
+      refSubAddOns: [],
+    });
+    setEditingAddon(null);
+    setEditingIndex(null);
+    setIsEditing(false);
+    setNewAddonSidebar(true);
+  };
 
   const GroundFeatures = async () => {
     try {
@@ -282,6 +378,7 @@ const EditGround = () => {
       console.error("Error in GroundDetails:", error);
     }
   };
+
   console.log("groundData", groundData);
   useEffect(() => {
     GroundFeatures();
@@ -340,6 +437,12 @@ const EditGround = () => {
         console.log("payload", payload);
         const response = await updateGround(payload);
         if (response.success) {
+          present({
+            message: "Updated successfully!",
+            duration: 2000,
+            position: "bottom",
+            color: "success",
+          });
         }
       }
     } catch (error) {
@@ -354,6 +457,10 @@ const EditGround = () => {
       ...prev!,
       [field]: value,
     }));
+  };
+
+  const handleAddon = (field: keyof GroundResult, value: string) => {
+    setForm({ ...form, [field]: value });
   };
 
   const handleMultiSelectChange = (
@@ -467,8 +574,6 @@ const EditGround = () => {
     });
   };
 
-  const [formDataImages, setFormdataImages] = useState<any>([]);
-
   const customMap = async (event: any) => {
     console.table("event", event);
     const file = event.files[0]; // Assuming single file upload
@@ -512,26 +617,6 @@ const EditGround = () => {
     // Add your failure handling logic here
   };
 
-  //   const handleAddNewAddon = async () => {
-  //   if (!newAddOnName) return;
-
-  //   try {
-  //     const payload = {
-  //       addOns: newAddOnName,
-  //       refGroundId: groundData.refGroundId,
-  //       refStatus: true,
-  //     };
-
-  //     const response = await createNewAddons(payload);
-  //     console.log("response", response);
-
-  //     // Optional: handle success (e.g., clear input or show message)
-  //   } catch (error) {
-  //     console.error("Error adding new add-on:", error);
-  //     // Optional: show error to the user
-  //   }
-  // };
-
   const parseDDMMYYYY = (dateStr: string): Date => {
     console.log(dateStr);
     const [day, month, year] = dateStr.split("-").map(Number);
@@ -539,77 +624,74 @@ const EditGround = () => {
   };
 
   console.log(groundDetails);
-  const [form, setForm] = useState<AddOnForm>({
-    name: "",
-    isSubaddonsAvailable: false,
-    price: null,
-    refSubAddOns: [],
-  });
-  // const handleSubcategoryChange = <K extends keyof Subcategory>(
-  //   index: number,
-  //   field: K,
-  //   value: Subcategory[K]
-  // ) => {
-  //   const updated = [...(form.refSubAddOns || [])];
 
-  //   if (field === "isItemsAvailable") {
-  //     updated[index][field] = value;
-  //     if (value && !updated[index].refItems) {
-  //       updated[index].refItems = [{ name: "", price: null }];
-  //     }
-  //     if (!value) {
-  //       delete updated[index].refItems;
-  //     }
-  //   } else {
-  //     updated[index][field] = value;
-  //   }
+  const handleSubcategoryChange = <K extends keyof Subcategory>(
+    index: number,
+    field: K,
+    value: Subcategory[K]
+  ) => {
+    const updated = [...(form.refSubAddOns || [])];
 
-  //   setForm({ ...form, refSubAddOns: updated });
-  // };
-  // const handleNestedChange = (
-  //   subIndex: number,
-  //   nestedIndex: number,
-  //   field: keyof NestedSubcategory,
-  //   value: any
-  // ) => {
-  //   const updated = [...(form.refSubAddOns || [])];
-  //   const nested = updated[subIndex].refItems || [];
-  //   nested[nestedIndex] = { ...nested[nestedIndex], [field]: value };
-  //   updated[subIndex].refItems = nested;
-  //   setForm({ ...form, refSubAddOns: updated });
-  // };
+    if (field === "isItemsAvailable") {
+      updated[index][field] = value;
+      if (value && !updated[index].refItems) {
+        updated[index].refItems = [{ name: "", price: null }];
+      }
+      if (!value) {
+        delete updated[index].refItems;
+      }
+    } else {
+      updated[index][field] = value;
+    }
 
-  // const addSubcategory = () => {
-  //   setForm({
-  //     ...form,
-  //     refSubAddOns: [
-  //       ...(form.refSubAddOns || []),
-  //       { name: "", isItemsAvailable: false, price: null, refItems: [] },
-  //     ],
-  //   });
-  // };
+    setForm({ ...form, refSubAddOns: updated });
+  };
 
-  // const removeSubcategory = (index: number) => {
-  //   const updated = [...(form.refSubAddOns || [])];
-  //   updated.splice(index, 1);
-  //   setForm({ ...form, refSubAddOns: updated });
-  // };
+  const handleNestedChange = (
+    subIndex: number,
+    nestedIndex: number,
+    field: keyof NestedSubcategory,
+    value: any
+  ) => {
+    const updated = [...(form.refSubAddOns || [])];
+    const nested = updated[subIndex].refItems || [];
+    nested[nestedIndex] = { ...nested[nestedIndex], [field]: value };
+    updated[subIndex].refItems = nested;
+    setForm({ ...form, refSubAddOns: updated });
+  };
 
-  // const addNestedSub = (subIndex: number) => {
-  //   const updated = [...(form.refSubAddOns || [])];
-  //   const nested = updated[subIndex].refItems || [];
-  //   nested.push({ name: "", price: null });
-  //   updated[subIndex].refItems = nested;
-  //   setForm({ ...form, refSubAddOns: updated });
-  // };
+  const addSubcategory = () => {
+    setForm({
+      ...form,
+      refSubAddOns: [
+        ...(form.refSubAddOns || []),
+        { name: "", isItemsAvailable: false, price: null, refItems: [] },
+      ],
+    });
+  };
 
-  // const removeNestedSub = (subIndex: number, nestedIndex: number) => {
-  //   const updated = [...(form.refSubAddOns || [])];
-  //   updated[subIndex].refItems = updated[subIndex].refItems?.filter(
-  //     (_, i) => i !== nestedIndex
-  //   );
-  //   setForm({ ...form, refSubAddOns: updated });
-  // };
+  const removeSubcategory = (index: number) => {
+    const updated = [...(form.refSubAddOns || [])];
+    updated.splice(index, 1);
+    setForm({ ...form, refSubAddOns: updated });
+  };
+
+  const addNestedSub = (subIndex: number) => {
+    const updated = [...(form.refSubAddOns || [])];
+    const nested = updated[subIndex].refItems || [];
+    nested.push({ name: "", price: null });
+    updated[subIndex].refItems = nested;
+    setForm({ ...form, refSubAddOns: updated });
+  };
+
+  const removeNestedSub = (subIndex: number, nestedIndex: number) => {
+    const updated = [...(form.refSubAddOns || [])];
+    updated[subIndex].refItems = updated[subIndex].refItems?.filter(
+      (_: any, i: any) => i !== nestedIndex
+    );
+    setForm({ ...form, refSubAddOns: updated });
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -634,27 +716,16 @@ const EditGround = () => {
             >
               <div className="mt-[2rem] px-[1rem]">
                 <label className="text-[#000]">Ground Name :</label>
-                {/* <InputText
+                <InputText
                   id="groundName"
                   placeholder="Ground Name"
                   className="w-full h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
                   value={groundDetails?.refGroundName || ""}
-                  onChange={(e) =>
-                    handleInputChange("refGroundName", e.target.value)
-                  }
-                  required
-                /> */}
-
-                <IonInput
-                  id="groundName"
-                  placeholder="Ground Name"
-                  className="w-full h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
-                  value={groundDetails?.refGroundName || ""}
-                  onIonChange={(e) =>
-                    handleInputChange("refGroundName", e.target.value as string)
+                  onChange={(e: any) =>
+                    handleInputChange("refGroundName", e.target.value )
                   }
                   required={true}
-                ></IonInput>
+                />
               </div>
 
               <div className="mt-[0.8rem] px-[1rem]">
@@ -773,7 +844,7 @@ const EditGround = () => {
                   id="groundFeatures"
                   placeholder="Select Ground Features"
                   maxSelectedLabels={3}
-                  className="w-full h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
+                  className="w-full h-[3rem] mt-[0.5rem] text-[#000] px-3"
                   display="chip"
                 />
               </div>
@@ -789,7 +860,7 @@ const EditGround = () => {
                   id="SportCategory"
                   placeholder="Sport Category"
                   maxSelectedLabels={3}
-                  className="w-full h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
+                  className="w-full h-[3rem] mt-[0.5rem] text-[#000] px-3"
                   display="chip"
                 />
               </div>
@@ -805,7 +876,7 @@ const EditGround = () => {
                   id="userGuideLines"
                   placeholder="Select User Guide Lines"
                   maxSelectedLabels={3}
-                  className="w-full h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
+                  className="w-full h-[3rem] mt-[0.5rem] text-[#000] px-3"
                   display="chip"
                 />
               </div>
@@ -821,7 +892,7 @@ const EditGround = () => {
                   id="facilities"
                   placeholder="Enter Facilities"
                   maxSelectedLabels={3}
-                  className="w-full h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
+                  className="w-full h-[3rem] mt-[0.5rem] text-[#000] px-3"
                   display="chip"
                 />
               </div>
@@ -838,14 +909,20 @@ const EditGround = () => {
                   id="additionalTips"
                   placeholder="Select Additional Tips"
                   maxSelectedLabels={3}
-                  className="w-full h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
+                  className="w-full h-[3rem] mt-[0.5rem] text-[#000] px-3"
                   display="chip"
                 />
               </div>
 
               {/* Image container */}
-              <div className="bg-[#f4f4f4] rounded-xl p-4 shadow-md flex flex-col m-5 items-center gap-4">
-                <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4">
+              <div
+                className="bg-[#f4f4f4] rounded-xl p-4 shadow-md flex flex-col m-5 items-center gap-4"
+                style={{ marginTop: "1rem" }}
+              >
+                <div
+                  className="w-full flex flex-col md:flex-row items-center justify-between gap-4"
+                  style={{ marginTop: "1rem" }}
+                >
                   {/* Preview Image */}
                   {groundImg && (
                     <img
@@ -916,7 +993,7 @@ const EditGround = () => {
                 </IonItem>
               </IonList>
 
-              {/* {form.isSubaddonsAvailable ? (
+              {form.isSubaddonsAvailable ? (
                 <>
                   {form.refSubAddOns?.map((sub, index) => (
                     <IonList
@@ -939,7 +1016,7 @@ const EditGround = () => {
                         <IonInput
                           value={sub.name}
                           placeholder="Subcategory Title"
-                          onIonChange={(e) =>
+                          onIonChange={(e: any) =>
                             handleSubcategoryChange(
                               index,
                               "name",
@@ -977,7 +1054,7 @@ const EditGround = () => {
                             value={sub.price}
                             placeholder="Enter Price"
                             className="custom-placeholder-black"
-                            onIonChange={(e) =>
+                            onIonChange={(e: any) =>
                               handleSubcategoryChange(
                                 index,
                                 "price",
@@ -990,7 +1067,7 @@ const EditGround = () => {
 
                       {sub.isItemsAvailable && (
                         <>
-                          {sub.refItems?.map((nested, nIndex) => (
+                          {sub.refItems?.map((nested: any, nIndex: any) => (
                             <IonItem
                               style={{ "--background": "#fff", color: "#000" }}
                               key={nIndex}
@@ -1063,7 +1140,215 @@ const EditGround = () => {
                     }
                   />
                 </IonItem>
-              )} */}
+              )}
+
+              <div></div>
+
+              {/* Addon Container */}
+              <div className="flex flex-col gap-4">
+                {addOns.map((addon, addonIndex) => {
+                  const selectedEntry = selectedAddonDates.find(
+                    (entry) => entry.refAddonId === addon.id
+                  );
+                  console.log(addon);
+                  // Convert unAvailabilityDate strings to Date objects
+                  const disabledDates = addon.unAvailabilityDates
+                    .map((entry) => {
+                      const parsedDate = parseDDMMYYYY(
+                        entry.unAvailabilityDate
+                      );
+                      return isNaN(parsedDate.getTime()) ? null : parsedDate;
+                    })
+                    .filter((date): date is Date => date !== null);
+
+                  // return (
+                  // <Panel key={addonIndex} header={addon.addOn} toggleable>
+                  //   <div className="flex flex-col gap-2 mt-2 justify-between">
+                  //     <div className="flex justify-between">
+                  //       <Button
+                  //         type="button"
+                  //         className="p-0 mr-2"
+                  //         label="Edit"
+                  //         onClick={() => handleEditAddon(addon, addonIndex)}
+                  //       />
+                  //       <Button
+                  //         type="button"
+                  //         className="p-0"
+                  //         severity="danger"
+                  //         icon="pi pi-trash"
+                  //         onClick={() => handleRemoveAddon(addon, addonIndex)}
+                  //       />
+                  //     </div>
+
+                  //     <div className="flex gap-2 items-center">
+                  //       <Calendar
+                  //         value={selectedEntry?.dates || []}
+                  //         onChange={(e) =>
+                  //           handleDateChange(
+                  //             addon.id,
+                  //             e.value as Date[] | null
+                  //           )
+                  //         }
+                  //         selectionMode="multiple"
+                  //         placeholder="Enter Your Unavailable Dates"
+                  //         disabledDates={disabledDates}
+                  //         minDate={new Date()}
+                  //         className="mb-2 w-full"
+                  //       />
+
+                  //       <Button
+                  //         type="button"
+                  //         label="Add"
+                  //         icon="pi pi-plus"
+                  //         onClick={() => handleAddDates(addon.id)}
+                  //         className="mb-3"
+                  //       />
+                  //     </div>
+                  //   </div>
+
+                  //   <div className="flex flex-wrap gap-2">
+                  //     {addon.unAvailabilityDates
+                  //       .slice()
+                  //       .sort(
+                  //         (a, b) =>
+                  //           parseDDMMYYYY(a.unAvailabilityDate).getTime() -
+                  //           parseDDMMYYYY(b.unAvailabilityDate).getTime()
+                  //       )
+                  //       .map((entry, dateIndex) => (
+                  //         <Chip
+                  //           key={entry.addOnsAvailabilityId || dateIndex}
+                  //           label={entry.unAvailabilityDate}
+                  //           removable
+                  //           onRemove={() => {
+                  //             console.log(addon);
+                  //             handleRemoveDate(entry.addOnsAvailabilityId);
+                  //             return true;
+                  //           }}
+                  //         />
+                  //       ))}
+                  //   </div>
+                  // </Panel>
+
+                  // );
+                  return (
+                    <IonCard
+                      style={{ "--background": "#fff", color: "#000" }}
+                      key={addonIndex}
+                      className="ion-margin-bottom"
+                    >
+                      <IonCardHeader>
+                        <IonCardTitle style={{ color: "#000" }}>
+                          {addon.addOn}
+                        </IonCardTitle>
+                      </IonCardHeader>
+
+                      <IonCardContent>
+                        {/* Action Buttons */}
+                        <IonGrid>
+                          <IonRow className="ion-justify-content-between ion-align-items-center">
+                            <IonCol size="auto">
+                              <IonButton
+                                size="small"
+                                onClick={() =>
+                                  handleEditAddon(addon, addonIndex)
+                                }
+                              >
+                                <IonIcon icon={pencil} slot="start" />
+                                Edit
+                              </IonButton>
+                            </IonCol>
+                            <IonCol size="auto">
+                              <IonButton
+                                size="small"
+                                color="danger"
+                                onClick={() =>
+                                  handleRemoveAddon(addon, addonIndex)
+                                }
+                              >
+                                <IonIcon icon={trash} slot="start" />
+                                Delete
+                              </IonButton>
+                            </IonCol>
+                          </IonRow>
+                        </IonGrid>
+
+                        {/* Calendar and Add Button */}
+                        <IonGrid>
+                          <IonRow className="ion-align-items-center">
+                            <IonCol size="small">
+                              <Calendar
+                                value={selectedEntry?.dates || []}
+                                onChange={(e) =>
+                                  handleDateChange(
+                                    addon.id,
+                                    e.value as Date[] | null
+                                  )
+                                }
+                                selectionMode="multiple"
+                                placeholder="Enter Your Unavailable Dates"
+                                disabledDates={disabledDates}
+                                minDate={new Date()}
+                                className="w-full"
+                              />
+                            </IonCol>
+                            <IonCol size="5">
+                              <IonButton
+                                size="small"
+                                expand="block"
+                                onClick={() => handleAddDates(addon.id)}
+                              >
+                                <IonIcon icon={add} slot="start" />
+                                Add
+                              </IonButton>
+                            </IonCol>
+                          </IonRow>
+                        </IonGrid>
+
+                        {/* Chips for Added Dates */}
+                        <div className="ion-margin-top">
+                          {addon.unAvailabilityDates
+                            .slice()
+                            .sort(
+                              (a, b) =>
+                                parseDDMMYYYY(a.unAvailabilityDate).getTime() -
+                                parseDDMMYYYY(b.unAvailabilityDate).getTime()
+                            )
+                            .map((entry, dateIndex) => (
+                              // <IonChip
+                              //   key={entry.addOnsAvailabilityId || dateIndex}
+                              //   onClick={() => {}}
+                              //   onDelete={() =>
+                              //     handleRemoveDate(entry.addOnsAvailabilityId)
+                              //   }
+                              //   color="medium"
+                              // >
+                              //   {entry.unAvailabilityDate}
+                              // </IonChip>
+                              <IonChip
+                                key={entry.addOnsAvailabilityId || dateIndex}
+                                color="medium"
+                              >
+                                {entry.unAvailabilityDate}
+                                <IonIcon
+                                  icon={trash}
+                                  className="ion-margin-start"
+                                  onClick={() =>
+                                    handleRemoveDate(entry.addOnsAvailabilityId)
+                                  }
+                                  slot="end"
+                                  style={{
+                                    cursor: "pointer",
+                                    fontSize: "18px",
+                                  }}
+                                />
+                              </IonChip>
+                            ))}
+                        </div>
+                      </IonCardContent>
+                    </IonCard>
+                  );
+                })}
+              </div>
 
               {/* Submit Button */}
               <div className="mt-[1rem] px-[3rem] pb-[3rem]">
@@ -1078,7 +1363,7 @@ const EditGround = () => {
                       style={{ fontSize: "1rem" }}
                     ></i>
                   ) : (
-                    "Next"
+                    "Update"
                   )}
                 </IonButton>
               </div>

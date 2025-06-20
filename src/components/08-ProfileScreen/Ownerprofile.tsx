@@ -18,6 +18,7 @@ import {
   IonTextarea,
 } from "@ionic/react";
 import { Browser } from "@capacitor/browser";
+import { IonAlert } from "@ionic/react";
 
 import { IonToggle } from "@ionic/react";
 import logo from "../../assets/images/Logo.png";
@@ -95,6 +96,7 @@ const Ownerprofile = () => {
     "default"
   );
   const [addressMap, setAddressMap] = useState<Address[]>([]);
+  const [showProfileAlert, setShowProfileAlert] = useState(true);
 
   const [document1, setDocument1] = useState<GroundImage | null>(null);
   const [document2, setDocument2] = useState<GroundImage | null>(null);
@@ -341,7 +343,7 @@ const Ownerprofile = () => {
       // toast.current!.show({ severity: 'success', summary: 'Success', detail: 'Successfully Updated', life: 3000 });
     } catch (error) {
       console.error("Update error:", error);
-      alert("Something went wrong while updating profile.");
+      // alert("Something went wrong while updating profile.");
     }
   };
 
@@ -390,6 +392,12 @@ const Ownerprofile = () => {
   const handleUploadSuccessMap = (response: any) => {
     console.log("Upload Successful:", response);
     setGroundImage(response.filePath);
+    present({
+      message: "Successfully Updated",
+      duration: 2000,
+      color: "success",
+      position: "bottom",
+    });
   };
 
   const handleUploadFailure = (error: any) => {
@@ -444,6 +452,12 @@ const Ownerprofile = () => {
     // temp.push(response.filePath); // Add the new file path
     // console.log("Upload Successful:", response);
     setDocument1(response.filePath); // Update the state with the new array
+    present({
+      message: "Successfully Updated",
+      duration: 2000,
+      color: "success",
+      position: "bottom",
+    });
   };
 
   const handlepassportUploadFailure1 = (error: any) => {
@@ -500,6 +514,12 @@ const Ownerprofile = () => {
     // temp.push(response.filePath); // Add the new file path
     // console.log("Upload Successful:", response);
     setDocument1(response.filePath); // Update the state with the new array
+    present({
+      message: "Successfully Updated",
+      duration: 2000,
+      color: "success",
+      position: "bottom",
+    });
   };
 
   const handlepassportUploadFailure2 = (error: any) => {
@@ -563,13 +583,21 @@ const Ownerprofile = () => {
           </IonButtons>
           <IonTitle>Profile</IonTitle>
           <IonButtons slot="end">
-            {/* <IonButton onClick={() => setIsEditing(!isEditing)}>
+            <IonButton onClick={() => setIsEditing(!isEditing)}>
               <IoMdCreate style={{ fontSize: "2rem", fontWeight: "bold" }} />
-            </IonButton> */}
+            </IonButton>
           </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent>
+        <IonAlert
+          isOpen={showProfileAlert}
+          onDidDismiss={() => setShowProfileAlert(false)}
+          header="Notice"
+          message="Please click the edit icon to update the changes."
+          buttons={["OK"]}
+        />
+
         {/* <Toast ref={toast} position="bottom-center" /> */}
         <div className="bg-[#fff] w-[100%] overflow-auto px-[0rem] py-[0rem]">
           {loading ? (
@@ -781,6 +809,7 @@ const Ownerprofile = () => {
                       checked={isGroundOwner}
                       onIonChange={(e) => setIsGroundOwner(e.detail.checked)}
                       labelPlacement="stacked"
+                      disabled={!isEditing}
                       className="custom-toggle"
                       style={{
                         "--handle-background-checked": "#0377de",
@@ -890,7 +919,10 @@ const Ownerprofile = () => {
                     inputId="default"
                     name="addressOption"
                     value="default"
-                    onChange={(e) => setIsGroundOwner(true)}
+                    onChange={(e) => {
+                      setIsDefault(true);
+                      console.log("true-->", e.value);
+                    }}
                     checked={isDefault === true}
                   />
                   <label htmlFor="default" style={{ marginLeft: "8px" }}>
@@ -912,7 +944,10 @@ const Ownerprofile = () => {
                     inputId="category"
                     name="addressOption"
                     value="category"
-                    onChange={(e) => setIsGroundOwner(false)}
+                    onChange={(e) => {
+                      setIsDefault(false);
+                      console.log("false-->", e.value);
+                    }}
                     checked={isDefault === false}
                   />
                   <label htmlFor="category" style={{ marginLeft: "8px" }}>
@@ -1008,6 +1043,7 @@ const Ownerprofile = () => {
                 </div> */}
                 <div className="flex justify-center items-center w-[100%]">
                   <IonButton
+                    size="small"
                     className="flex justify-center items-center w-[30%] "
                     onClick={Document1}
                   >
@@ -1055,6 +1091,7 @@ const Ownerprofile = () => {
                 )} */}
                 <div className="flex justify-center items-center w-[100%]">
                   <IonButton
+                    size="small"
                     className="flex justify-center items-center w-[30%] "
                     onClick={Document2}
                   >

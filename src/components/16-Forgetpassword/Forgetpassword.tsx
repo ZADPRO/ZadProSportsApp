@@ -1,5 +1,6 @@
 import { IonButton, IonContent, IonPage } from "@ionic/react";
 import logo from "../../assets/images/Logo.png";
+import { useIonAlert } from "@ionic/react";
 
 import { InputText } from "primereact/inputtext";
 import { useEffect, useRef, useState } from "react";
@@ -14,6 +15,7 @@ const Forgetpassword = () => {
     username: "",
     password: "",
   });
+  const [presentAlert] = useIonAlert();
 
   const [selectedRole, setSelectedRole] = useState<"user" | "owner">("user");
   const [loading, setLoading] = useState(false);
@@ -45,21 +47,27 @@ const Forgetpassword = () => {
         response.data[0],
         import.meta.env.VITE_ENCRYPTION_KEY
       );
-      console.log("decryptedData--->", decryptedData);
 
       if (decryptedData.success) {
-        console.log("decryptedData", decryptedData);
-
         localStorage.setItem("token", "Bearer " + decryptedData.token);
         localStorage.setItem("name", decryptedData.name);
-        // localStorage.setItem("roleID", roleID.toString());
-
-        return true; // success
+        return true;
       } else {
+        // Show alert on failure
+        presentAlert({
+          header: "Error",
+          message: decryptedData.message || "No record found for the user.",
+          buttons: ["OK"],
+        });
         return false;
       }
-    } catch (e) {
+    } catch (e: any) {
       console.log("Login error:", e);
+      presentAlert({
+        header: "Error",
+        message: e.response?.data?.message || "No record found for the user.",
+        buttons: ["OK"],
+      });
       return false;
     }
   };
@@ -136,13 +144,13 @@ const Forgetpassword = () => {
                 </IonButton>
               </div>
 
-              <div className="mt-[1rem] flex justify-center items-center text-[#ef4444]">
-                Please check the mail *
+              <div className="mt-[1rem] flex justify-center items-center text-[#ef4444]" style={{paddingLeft:"2.5rem",alignItems:"center"}}>
+               Please check your email to reset your password*
               </div>
               <div className="mt-[2rem] flex justify-center items-center gap-[0.5rem]">
                 <div
                   onClick={() => {
-                    history.push("/login");
+                    history.goBack();
                   }}
                   className="text-[1rem] text-[#000] font-[poppins] underline"
                 >

@@ -53,6 +53,7 @@ import OwnerGround from "../../components/05-GroundDescription/OwnerGround";
 import EditGround from "../../components/15-AddGround/EditGround";
 import Dashboard from "../04-Dashboard/Dashboard";
 import Forgetpassword from "../../components/16-Forgetpassword/Forgetpassword";
+import GroundStatus from "../../components/12-BookedScreen/GroundStatus";
 
 const MainRoutes = () => {
   const location = useLocation();
@@ -193,6 +194,9 @@ const MainRoutes = () => {
         </Route>
         <Route exact path="/bookinghistory">
           <BookedScreen />
+        </Route>
+         <Route exact path="/groundstatus">
+          <GroundStatus />
         </Route>
         {/* <Redirect exact from="/" to="/splash" /> */}
       </IonRouterOutlet>

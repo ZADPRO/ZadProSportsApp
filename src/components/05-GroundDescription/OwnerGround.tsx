@@ -339,7 +339,7 @@ const OwnerGround = () => {
               </p>
             </div>
 
-            {/* <IonButton
+            <IonButton
               expand="block"
               style={{
                 position: "fixed",
@@ -357,7 +357,7 @@ const OwnerGround = () => {
               }
             >
               Edit Now
-            </IonButton> */}
+            </IonButton>
           </div>
         )}
       </IonContent>

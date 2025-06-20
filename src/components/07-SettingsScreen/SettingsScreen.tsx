@@ -127,8 +127,11 @@ const SettingsScreen = () => {
               <div
                 className="mt-[0.6rem] mb-[0.4rem] flex justify-between"
                 onClick={() => {
-                  if (roleID === "2" || roleID === "4") {
+                  if (roleID === "2") {
                     history.push("/bookinghistory");
+                  }
+                  if (roleID === "4") {
+                    history.push("/groundstatus");
                   } else {
                     console.warn("Unknown roleID:", roleID);
                   }

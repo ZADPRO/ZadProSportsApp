@@ -57,7 +57,7 @@ const HomeScreen = () => {
       );
 
       localStorage.setItem("token", "Bearer " + data.token);
-      console.log("fetchGround----->", data.result[0]);
+      console.log("fetchOwner----->", data.result[0]);
       setDashboard(data.result[0]);
       setLoading(false);
     } catch (e) {
@@ -87,9 +87,8 @@ const HomeScreen = () => {
   const fetchData = async (id: any) => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/v1/userRoutes/listFilteredGrounds`,
-        { refSportsCategoryId: id },
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/v1/userRoutes/listGrounds`,
         {
           headers: {
             Authorization: localStorage.getItem("token"),
@@ -103,7 +102,7 @@ const HomeScreen = () => {
         response.data[0],
         import.meta.env.VITE_ENCRYPTION_KEY
       );
-
+      console.log("fetchData----->", data);
       if (data.success) {
         localStorage.setItem("token", "Bearer " + data.token);
         setGroundDetails(data.result);
@@ -265,7 +264,7 @@ const HomeScreen = () => {
                       display: "flex",
                       justifyContent: "center",
                       padding: "2rem",
-                      height:"100%"
+                      height: "100%",
                     }}
                   >
                     <Lottie animationData={Boy} loop={true} />
@@ -360,7 +359,7 @@ const HomeScreen = () => {
                         progress
                       </h2>
 
-                      <div className="flex text-[#000] flex-col gap-[1rem]">
+                      <div className="flex flex-col relative ml-[10px]">
                         {[
                           "DRAFT",
                           "PENDING",
@@ -369,23 +368,48 @@ const HomeScreen = () => {
                           "APPROVED",
                           "ONBOARDED",
                           "SUSPENDED",
-                        ].map((status, index) => {
+                        ].map((status, index, arr) => {
+                          const isCompleted =
+                            arr.indexOf(dashboard.refStatus) > index;
                           const isCurrent = dashboard.refStatus === status;
+
                           return (
                             <div
+                              className="flex items-start gap-[0.75rem] relative"
                               key={index}
-                              className="flex items-center gap-[0.75rem]"
                             >
-                              <div
-                                className={`w-[20px] h-[20px] rounded-full ${
-                                  isCurrent ? "bg-[#22c55e]" : "bg-[#6b7280]"
-                                }`}
-                              ></div>
+                              {/* Dot */}
+                              <div className="flex flex-col items-center">
+                                <div
+                                  className={`w-[20px] h-[20px] rounded-full z-10 ${
+                                    isCurrent
+                                      ? "bg-[#22c55e] border-4 border-white"
+                                      : isCompleted
+                                      ? "bg-[#22c55e]"
+                                      : "bg-[#cbd5e1]"
+                                  }`}
+                                ></div>
+
+                                {/* Connecting line */}
+                                {index < arr.length - 1 && (
+                                  <div
+                                    className={`w-[2px] h-[40px] ${
+                                      isCompleted
+                                        ? "bg-[#22c55e]"
+                                        : "bg-[#cbd5e1]"
+                                    }`}
+                                  ></div>
+                                )}
+                              </div>
+
+                              {/* Status Text */}
                               <span
-                                className={`text-[20px] font-bold ${
+                                className={`text-[16px] pt-[2px] ${
                                   isCurrent
                                     ? "text-[#22c55e] font-semibold"
-                                    : "text-[#64748b]"
+                                    : isCompleted
+                                    ? "text-[#4b5563]"
+                                    : "text-[#9ca3af]"
                                 }`}
                               >
                                 {status}

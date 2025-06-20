@@ -7,6 +7,7 @@ import {
   IonHeader,
   IonPage,
   IonTitle,
+  IonToast,
   IonToolbar,
 } from "@ionic/react";
 import {
@@ -17,6 +18,9 @@ import {
   IonText,
   IonTextarea,
 } from "@ionic/react";
+import { alertController } from "@ionic/core";
+import { useIonToast } from "@ionic/react";
+
 import { Button } from "primereact/button";
 import { IonToggle } from "@ionic/react";
 import logo from "../../assets/images/Logo.png";
@@ -83,6 +87,17 @@ const OwnerSignup = () => {
   const [showConfirmUpload, setShowConfirmUpload] = useState(false);
   const [pendingCameraFile, setPendingCameraFile] = useState<File | null>(null);
   const [isUploaded, setIsUploaded] = useState(false);
+  const [showUploadError, setShowUploadError] = useState(false);
+  const [errors, setErrors] = useState({
+    refPANId: "",
+    refGSTnumber: "",
+    refIFSCcode: "",
+    refAccountNumber: "",
+  });
+  const [present] = useIonToast();
+
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+
   const [selectedCategoryType, setSelectedCategoryType] = useState<
     SportCategory[]
   >([]);
@@ -167,6 +182,25 @@ const OwnerSignup = () => {
     }));
   };
 
+  const handleInputs = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    // Allow only digits and max 10 characters
+    if (name === "refMobileId") {
+      const cleaned = value.replace(/\D/g, ""); // remove non-digit characters
+      if (cleaned.length > 10) return; // restrict to 10 digits
+      setInputs((prevState) => ({
+        ...prevState,
+        [name]: cleaned,
+      }));
+    } else {
+      setInputs((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
+    }
+  };
+
   const AddOwner = async () => {
     try {
       const isDefaultAddress = addressOption === "default";
@@ -229,7 +263,6 @@ const OwnerSignup = () => {
 
       console.log("data---------->Owner", data);
 
-     
       await presentAlert({
         header: "Info",
         message: data.message || "Something went wrong.",
@@ -248,6 +281,14 @@ const OwnerSignup = () => {
       });
     }
   };
+  const showErrorAlert = async (message: string) => {
+    const alert = await alertController.create({
+      header: "Upload Error",
+      message: message,
+      buttons: ["OK"],
+    });
+    await alert.present();
+  };
 
   const profile = async (event: any) => {
     console.table("event", event);
@@ -255,6 +296,10 @@ const OwnerSignup = () => {
     const formData = new FormData();
     formData.append("Image", file);
     console.log("formData", formData);
+    if (!file) {
+      showErrorAlert("* Please upload an image (max size: 1000 KB)");
+      return;
+    }
 
     for (let pair of formData.entries()) {
       console.log("-------->______________", pair[0] + ":", pair[1]);
@@ -283,6 +328,8 @@ const OwnerSignup = () => {
       console.log("data==============", data);
 
       if (data.success) {
+        setIsUploaded(true);
+        setShowSuccessToast(true);
         console.log("data+", data);
         handleUploadSuccessMap(data);
       }
@@ -298,6 +345,8 @@ const OwnerSignup = () => {
 
   const handleUploadFailure = (error: any) => {
     console.error("Upload Failed:", error);
+
+    showErrorAlert("Upload failed. Please try again.");
   };
 
   const handleCategoryChange = (e: any) => {
@@ -374,6 +423,15 @@ const OwnerSignup = () => {
     listSportApi();
   }, []);
 
+  const onFileSelect = (e: any) => {
+    present({
+      message: "Please upload after choosing the document.",
+      duration: 2000,
+      position: "bottom",
+      color: "warning",
+    });
+  };
+
   const UploaderDoc1 = async (event: any) => {
     console.table("event", event);
 
@@ -419,14 +477,24 @@ const OwnerSignup = () => {
     }
   };
   const handlepassportUploadSuccess1 = (response: any) => {
-    // let temp = [...document1]; // Create a new array to avoid mutation
-    // temp.push(response.filePath); // Add the new file path
     console.log("Upload Successful:", response);
-    setDocument1(response.filePath); // Update the state with the new array
+    setDocument1(response.filePath);
+    present({
+      message: "Uploaded successfully!",
+      duration: 2000,
+      position: "bottom",
+      color: "success",
+    });
   };
 
   const handlepassportUploadFailure1 = (error: any) => {
     console.error("Upload Failed:", error);
+    present({
+      message: "Upload error occurred!",
+      duration: 2000,
+      position: "bottom",
+      color: "danger",
+    });
     // Add your failure handling logic here
   };
 
@@ -462,6 +530,7 @@ const OwnerSignup = () => {
 
         if (data.success) {
           localStorage.setItem("token", "Bearer " + data.token);
+
           handlepassportUploadSuccess2(data);
         } else {
           handlepassportUploadFailure2(data);
@@ -472,14 +541,23 @@ const OwnerSignup = () => {
     }
   };
   const handlepassportUploadSuccess2 = (response: any) => {
-    // let temp = [...document1]; // Create a new array to avoid mutation
-    // temp.push(response.filePath); // Add the new file path
-    // console.log("Upload Successful:", response);
-    setDocument2(response.filePath); // Update the state with the new array
+    setDocument2(response.filePath);
+    present({
+      message: "Uploaded successfully!",
+      duration: 2000,
+      position: "bottom",
+      color: "success",
+    });
   };
 
   const handlepassportUploadFailure2 = (error: any) => {
     console.error("Upload Failed:", error);
+    present({
+      message: "Upload error occurred!",
+      duration: 2000,
+      position: "bottom",
+      color: "danger",
+    });
     // Add your failure handling logic here
   };
 
@@ -562,6 +640,48 @@ const OwnerSignup = () => {
       console.log("Error adding Owner:", e);
     }
   };
+  const handleInput1 = (e: any) => {
+    const { name, value } = e.target;
+
+    if (name === "refPANId") {
+      const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+      const panValue = value.toUpperCase();
+      setErrors((prev) => ({
+        ...prev,
+        [name]:
+          panValue && !panRegex.test(panValue) ? "Invalid PAN format" : "",
+      }));
+      setInputs((prev) => ({ ...prev, [name]: panValue }));
+    } else if (name === "refGSTnumber") {
+      const gstRegex =
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      const gstValue = value.toUpperCase();
+      setErrors((prev) => ({
+        ...prev,
+        [name]:
+          gstValue && !gstRegex.test(gstValue) ? "Invalid GST format" : "",
+      }));
+      setInputs((prev) => ({ ...prev, [name]: gstValue }));
+    } else if (name === "refIFSCcode") {
+      const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+      const ifscValue = value.toUpperCase();
+      setErrors((prev) => ({
+        ...prev,
+        [name]:
+          ifscValue && !ifscRegex.test(ifscValue) ? "Invalid IFSC code" : "",
+      }));
+      setInputs((prev) => ({ ...prev, [name]: ifscValue }));
+    } else if (name === "refAccountNumber") {
+      const accRegex = /^[0-9]{9,18}$/;
+      setErrors((prev) => ({
+        ...prev,
+        [name]: value && !accRegex.test(value) ? "Invalid Account Number" : "",
+      }));
+      setInputs((prev) => ({ ...prev, [name]: value }));
+    } else {
+      setInputs((prev) => ({ ...prev, [name]: value }));
+    }
+  };
 
   return (
     <IonPage>
@@ -627,10 +747,12 @@ const OwnerSignup = () => {
                 <InputText
                   name="refMobileId"
                   value={inputs.refMobileId}
-                  onChange={handleInput}
+                  onChange={handleInputs}
                   placeholder="Enter Mobile Number"
                   className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
+                  maxLength={10} // limit input to 10 digits
                   required
+                  keyfilter="int" // only allow numeric input if you're using PrimeReact
                 />
               </div>
 
@@ -669,35 +791,53 @@ const OwnerSignup = () => {
               <InputText
                 name="refAadharId"
                 value={inputs.refAadharId}
-                onChange={handleInput}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Allow only numbers and limit to 12 digits
+                  if (/^\d{0,12}$/.test(value)) {
+                    handleInput(e);
+                  }
+                }}
+                keyfilter="int" // optional PrimeReact built-in filter
+                maxLength={12}
                 placeholder="Aadhar Card Number"
                 className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                 required
               />
             </div>
+
             {/* PAn */}
             <div className="mt-[0.8rem] px-[1rem]">
               <label className="text-[#000]">Pan Card Number</label>
               <InputText
                 name="refPANId"
                 value={inputs.refPANId}
-                onChange={handleInput}
+                onChange={handleInput1}
                 placeholder="Pan Card Number"
                 className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                 required
               />
+              {errors.refPANId && (
+                <p className="text-[#e24c4c] text-sm mt-1">{errors.refPANId}</p>
+              )}
             </div>
+
             {/* GST */}
             <div className="mt-[0.8rem] px-[1rem]">
               <label className="text-[#000]">GST Number</label>
               <InputText
                 name="refGSTnumber"
                 value={inputs.refGSTnumber}
-                onChange={handleInput}
+                onChange={handleInput1}
                 placeholder="GST Number"
                 className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                 required
               />
+              {errors.refGSTnumber && (
+                <p className="text-[#e24c4c] text-sm mt-1">
+                  {errors.refGSTnumber}
+                </p>
+              )}
             </div>
 
             <div className="mt-[1rem] px-[1rem] ">
@@ -724,7 +864,7 @@ const OwnerSignup = () => {
                 name="refAcHolderName"
                 value={inputs.refAcHolderName}
                 onChange={handleInput}
-                placeholder="Enter Bank Name"
+                placeholder="Enter Account Holder Name"
                 className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                 required
               />
@@ -734,22 +874,32 @@ const OwnerSignup = () => {
               <InputText
                 name="refIFSCcode"
                 value={inputs.refIFSCcode}
-                onChange={handleInput}
-                placeholder="Enter Bank Name"
+                onChange={handleInput1}
+                placeholder="Enter IFSC Code"
                 className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                 required
               />
+              {errors.refIFSCcode && (
+                <p className="text-[#e24c4c] text-sm mt-1">
+                  {errors.refIFSCcode}
+                </p>
+              )}
             </div>
             <div className="mt-[0.8rem] px-[1rem]">
               <label className="text-[#000]">Account No</label>
               <InputText
                 name="refAccountNumber"
                 value={inputs.refAccountNumber}
-                onChange={handleInput}
-                placeholder="Enter Bank Name"
+                onChange={handleInput1}
+                placeholder="Enter Account No"
                 className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                 required
               />
+              {errors.refAccountNumber && (
+                <p className="text-[#e24c4c] text-sm mt-1">
+                  {errors.refAccountNumber}
+                </p>
+              )}
             </div>
 
             <div className="mt-[0.8rem] px-[1rem]">
@@ -758,14 +908,14 @@ const OwnerSignup = () => {
                 name="refBankBranch"
                 value={inputs.refBankBranch}
                 onChange={handleInput}
-                placeholder="Enter Bank Name"
+                placeholder="Enter Branch"
                 className="w-full h-[2.2rem] mt-[0.2rem] text-[#000] px-3"
                 required
               />
             </div>
             <div className="mt-[2rem] px-[1rem] flex flex-row justify-around items-center w-[100%]">
               <label className="text-[#000]">Own Ground :</label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-[20px]">
                 <span className="text-sm text-[#000]">No</span>
                 <IonToggle
                   checked={isGroundOwner}
@@ -796,7 +946,7 @@ const OwnerSignup = () => {
                 value={inputs.refGroundDescription}
                 onChange={handleInput}
                 placeholder="Enter Ground Description"
-                className="w-full h-[3rem] mt-[1rem] text-[#000] px-3"
+                className="w-full h-[2.2rem] mt-[1rem] text-[#000] px-3"
                 required
               />
             </div>
@@ -901,12 +1051,20 @@ const OwnerSignup = () => {
                 accept="image/*"
                 maxFileSize={10000000}
                 emptyTemplate={
-                  <p className="m-0">Drag and drop your image here.</p>
+                  <p className="m-0">
+                    {" "}
+                    * Please upload an image (max size: 1000 KB)
+                  </p>
                 }
               />
               {!isUploaded && (
                 <IonText color="danger" className="ion-padding-top">
                   * Please upload the image to continue
+                </IonText>
+              )}
+              {!isUploaded && (
+                <IonText color="danger" className="ion-padding-top">
+                  * Please upload an image (max size: 1000 KB)
                 </IonText>
               )}
             </div>
@@ -1075,6 +1233,7 @@ const OwnerSignup = () => {
                 customUpload
                 uploadHandler={UploaderDoc1}
                 accept="application/pdf"
+                onSelect={onFileSelect}
                 maxFileSize={10000000}
                 emptyTemplate={
                   <p className="m-0">Drag and drop your image here.</p>
@@ -1085,6 +1244,13 @@ const OwnerSignup = () => {
                   * Please upload the pdf to continue
                 </IonText>
               )}
+              <IonToast
+                isOpen={showSuccessToast}
+                onDidDismiss={() => setShowSuccessToast(false)}
+                message="Image uploaded successfully!"
+                duration={2000}
+                color="success"
+              />
             </div>
 
             <IonItem
@@ -1103,17 +1269,13 @@ const OwnerSignup = () => {
                 name="logo"
                 customUpload
                 uploadHandler={UploaderDoc2}
+                onSelect={onFileSelect}
                 accept="application/pdf"
                 maxFileSize={10000000}
                 emptyTemplate={
                   <p className="m-0">Drag and drop your pdf here.</p>
                 }
               />
-              {!isUploaded && (
-                <IonText color="danger" className="ion-padding-top">
-                  * Please upload the pdf to continue
-                </IonText>
-              )}
             </div>
 
             <div

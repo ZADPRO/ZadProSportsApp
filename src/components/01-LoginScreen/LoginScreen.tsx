@@ -221,7 +221,7 @@ const LoginScreen = () => {
                 }}
                 className="flex justify-center items-center text-[1rem] text-[#000] font-[poppins] underline"
               >
-                Forget Password
+                Forgot Password
               </div>
          
             </div>
@@ -240,7 +240,7 @@ const LoginScreen = () => {
                 )}
               </IonButton>
             </div>
-            <div className="mt-[3rem] flex justify-center items-center gap-[0.5rem]">
+            <div className="mt-[1rem]  flex justify-center items-center gap-[0.5rem]">
               <div
                 onClick={() => {
                   if (selectedRole == "user") {
@@ -249,10 +249,13 @@ const LoginScreen = () => {
                     history.push("/ownersignup");
                   }
                 }}
-                className="text-[1rem] text-[#000] font-[poppins] underline"
+                className="text-[1rem] text-[#000] font-[poppins] underline mb-5"
               >
                 Need an account ? Get Started Here
               </div>
+            </div>
+             <div className="mt-[3rem]  flex justify-center items-center gap-[0.5rem]">
+        
             </div>
           </form>
         </div>

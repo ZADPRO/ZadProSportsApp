@@ -27,18 +27,7 @@ import { decrypt } from "../../Helper";
 import { Toast } from "primereact/toast";
 
 const ProfileScreen = () => {
-  // const toast = useRef<Toast>(null);
   const [present] = useIonToast();
-
-  // useEffect(() => {
-  //     StatusBar.setOverlaysWebView({ overlay: false });
-  //     StatusBar.setStyle({ style: Style.Dark });
-  //     StatusBar.setBackgroundColor({ color: "#0377de" });
-
-  //     return () => {
-  //         StatusBar.setOverlaysWebView({ overlay: true });
-  //     };
-  // }, []);
 
   const [dob, setDob]: any = useState(null);
   const [firstName, setFirstName] = useState("");
@@ -46,10 +35,9 @@ const ProfileScreen = () => {
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
 
-  function formatDateString(dateStr: any) {
-    const [day, month, year] = dateStr.split("-");
-    const dateObj = new Date(year, month - 1, day);
-    return dateObj;
+  function formatDateString(dateStr: string) {
+    const [year, month, day] = dateStr.split("-");
+    return new Date(Number(year), Number(month) - 1, Number(day));
   }
 
   const fetchData = async () => {
@@ -226,6 +214,7 @@ const ProfileScreen = () => {
                   }}
                   dateFormat="dd-mm-yy"
                   showIcon
+                  panelStyle={{ left: "50%", transform: "translateX(-50%)" }}
                   required
                   placeholder="Select Date of Birth"
                   className="w-full mt-[0.3rem] text-[#000] h-[2.5rem] text-[0.9rem] font-[poppins]"
@@ -244,7 +233,12 @@ const ProfileScreen = () => {
                   id="mobile"
                   placeholder="Enter Mobile Number"
                   value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
+                  onChange={(e) => {
+                    const input = e.target.value;
+                    if (/^\d{0,10}$/.test(input)) {
+                      setMobile(input);
+                    }
+                  }}
                   required
                   className="mt-[0.3rem] text-[#000] text-[0.9rem] w-full h-[2.5rem] px-3  font-[poppins]"
                 />
@@ -256,7 +250,7 @@ const ProfileScreen = () => {
                   htmlFor="email"
                   className="text-[#000] text-[0.9rem] font-[poppins]"
                 >
-                  Email
+                  Email (Not Editable*)
                 </label>
                 <InputText
                   id="email"
@@ -265,6 +259,7 @@ const ProfileScreen = () => {
                   readOnly={true}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={true}
                   className="mt-[0.3rem] text-[#000] text-[0.9rem] w-full h-[2.5rem] px-3  font-[poppins]"
                 />
               </div>

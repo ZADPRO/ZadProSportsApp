@@ -322,6 +322,12 @@ const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
   const handleUploadSuccessMap = (response: any) => {
     console.log("Upload Successful:", response);
     setGroundImg(response.filePath);
+    present({
+      message: "Uploaded successfully!",
+      duration: 2000,
+      position: "bottom",
+      color: "success",
+    });
   };
   console.log("formdata------>", formDataImages);
 
@@ -498,21 +504,59 @@ const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
     }
   };
 
+  // const handleSubmit = () => {
+  //   try {
+  //     validateForm(); // Validate the form before proceeding
+  //     const newAddon = { ...form }; // Create a new add-on object from the form state
+  //     console.log("newAddon", newAddon);
+  //     // Update groundDetails with the new add-on
+  //     setGroundDetails((prev) => ({
+  //       ...prev,
+  //       refAddOns: [...prev.refAddOns, newAddon], // Add new add-on to the array
+  //     }));
+
+  //     // Optionally, you can call onSave here if needed
+  //     // onSave(JSON.stringify(newAddon)); // Send it back as a string
+  //   } catch (error: any) {
+  //     console.error(error.message); // Display error message
+  //   }
+  // };
+
   const handleSubmit = () => {
     try {
       validateForm(); // Validate the form before proceeding
       const newAddon = { ...form }; // Create a new add-on object from the form state
       console.log("newAddon", newAddon);
+
       // Update groundDetails with the new add-on
       setGroundDetails((prev) => ({
         ...prev,
         refAddOns: [...prev.refAddOns, newAddon], // Add new add-on to the array
       }));
 
-      // Optionally, you can call onSave here if needed
-      // onSave(JSON.stringify(newAddon)); // Send it back as a string
+      // Reset form for adding the next add-on
+      setForm({
+        name: "",
+        isSubaddonsAvailable: false,
+        price: null,
+        refSubAddOns: [],
+      });
+
+      // Optionally, show toast/message
+      present({
+        message: "Add-On added successfully. You can add more.",
+        duration: 2000,
+        position: "bottom",
+        color: "success",
+      });
     } catch (error: any) {
       console.error(error.message); // Display error message
+      present({
+        message: error.message,
+        duration: 2500,
+        position: "bottom",
+        color: "danger",
+      });
     }
   };
 
@@ -608,7 +652,7 @@ const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
             >
               <div className="mt-[0.8rem] px-[1rem]">
                 <label className="text-[#000]">Ground Name :</label>
-                {/* <InputText
+                <InputText
                   id="groundName"
                   placeholder="Ground Name"
                   className="w-full h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
@@ -617,9 +661,9 @@ const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
                     handleInputChange("refGroundName", e.target.value)
                   }
                   required
-                /> */}
+                />
 
-                <IonInput
+                {/* <IonInput
                   id="groundName"
                   placeholder="Ground Name"
                   className="w-full h-[2.2rem] mt-[0.5rem] text-[#000] px-3"
@@ -628,7 +672,7 @@ const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
                     handleInputChange("refGroundName", e.target.value as string)
                   }
                   required={true}
-                ></IonInput>
+                ></IonInput> */}
               </div>
 
               <div className="mt-[0.8rem] px-[1rem]">
@@ -817,17 +861,19 @@ const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
                 />
               </div>
 
-           
-
               {/* Image container */}
-              <div
-                className="flex flex-col items-center gap-2 m-4 mt-3 p-2 rounded-xl shadow-inset"
-                style={{
-                  background: "lightgrey",
-                }}
+              <IonItem
+                lines="none"
+                style={{ "--background": "#fff", color: "#000" }}
+                className="ion-margin-top ion-padding-start"
               >
+                <IonLabel className="ion-text-wrap">
+                  Upload Ground Image
+                </IonLabel>
+              </IonItem>
+              <div className="flex flex-col items-center gap-2 m-4 mt-3 p-2 rounded-xl shadow-inset">
                 <div className="flex gap-2 justify-between items-start duration-300 rounded-lg">
-                  {groundImg && (
+                  {/* {groundImg && (
                     <img
                       src={
                         groundImg?.filename &&
@@ -836,7 +882,7 @@ const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
                       alt={groundImg?.filename || "Preview"}
                       className="object-cover w-64 h-64 rounded-lg border-2"
                     />
-                  )}
+                  )} */}
 
                   <FileUpload
                     name="logo"
@@ -867,9 +913,10 @@ const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
                   <IonInput
                     placeholder="Add On Title"
                     value={form.name}
-                    onIonChange={(e) =>
-                      setForm({ ...form, name: e.detail.value as string })
-                    }
+                    onIonChange={(e) => {
+                      console.log("e.detail.value", e.detail.value);
+                      setForm({ ...form, name: e.detail.value as string });
+                    }}
                   />
                 </IonItem>
 
@@ -1027,6 +1074,7 @@ const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
                 </>
               ) : (
                 <IonItem style={{ "--background": "#fff", color: "#000" }}>
+                  <IonLabel position="stacked">Before Enter the price choose Has Subcategories? </IonLabel>
                   <IonLabel position="stacked">Price</IonLabel>
                   <IonInput
                     type="number"
@@ -1040,6 +1088,28 @@ const AddGround: React.FC<CreateAddOnsProps> = ({ selectedAddon, onSave }) => {
                     }
                   />
                 </IonItem>
+              )}
+              <IonButton expand="block" onClick={handleSubmit}>
+                Save Add-On
+              </IonButton>
+
+              {/* Show added Add-Ons */}
+              {groundDetails.refAddOns.length > 0 && (
+                <div className="ion-padding">
+                  <IonText>
+                    <h3>Already Added Add-Ons:</h3>
+                  </IonText>
+                  <ul>
+                    {groundDetails.refAddOns.map((a, i) => (
+                      <li key={i}>
+                        <strong>{a.name}</strong> –{" "}
+                        {a.isSubaddonsAvailable
+                          ? `${a.refSubAddOns?.length || 0} subcategories`
+                          : `₹${a.price}`}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
 
               {/* Submit Button */}
