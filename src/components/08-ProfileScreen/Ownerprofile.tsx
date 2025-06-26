@@ -583,20 +583,20 @@ const Ownerprofile = () => {
           </IonButtons>
           <IonTitle>Profile</IonTitle>
           <IonButtons slot="end">
-            <IonButton onClick={() => setIsEditing(!isEditing)}>
+            {/* <IonButton onClick={() => setIsEditing(!isEditing)}>
               <IoMdCreate style={{ fontSize: "2rem", fontWeight: "bold" }} />
-            </IonButton>
+            </IonButton> */}
           </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <IonAlert
+        {/* <IonAlert
           isOpen={showProfileAlert}
           onDidDismiss={() => setShowProfileAlert(false)}
           header="Notice"
           message="Please click the edit icon to update the changes."
           buttons={["OK"]}
-        />
+        /> */}
 
         {/* <Toast ref={toast} position="bottom-center" /> */}
         <div className="bg-[#fff] w-[100%] overflow-auto px-[0rem] py-[0rem]">
@@ -1127,7 +1127,7 @@ const Ownerprofile = () => {
                 </div>
 
                 {/* Submit Button */}
-                <div className="mt-[1rem] px-[3rem] pb-[3rem]">
+                {/* <div className="mt-[1rem] px-[3rem] pb-[3rem]">
                   <IonButton
                     type="submit"
                     className="custom-ion-button w-full h-[2.5rem] text-[1rem]"
@@ -1143,7 +1143,7 @@ const Ownerprofile = () => {
                       "Save"
                     )}
                   </IonButton>
-                </div>
+                </div> */}
               </form>
             </div>
           )}

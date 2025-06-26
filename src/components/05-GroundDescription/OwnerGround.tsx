@@ -331,15 +331,15 @@ const OwnerGround = () => {
                   ? new Date(description.createdAt).toLocaleString()
                   : "-"}
               </p>
-              <p>
+              {/* <p>
                 Updated:{" "}
                 {description.updatedAt
                   ? new Date(description.updatedAt).toLocaleString()
                   : "-"}
-              </p>
+              </p> */}
             </div>
 
-            <IonButton
+            {/* <IonButton
               expand="block"
               style={{
                 position: "fixed",
@@ -357,7 +357,7 @@ const OwnerGround = () => {
               }
             >
               Edit Now
-            </IonButton>
+            </IonButton> */}
           </div>
         )}
       </IonContent>
